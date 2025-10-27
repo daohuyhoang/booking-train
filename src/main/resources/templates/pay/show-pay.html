@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Thanh Toán Vé Máy Bay</title>
+    <link rel="stylesheet" href="/css/show-pay.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <th:block th:replace="~{/common/layout :: head}"></th:block>
+</head>
+<body>
+<th:block th:replace="~{/common/layout :: navbar}"></th:block>
+<div class="container main-container">
+    <div class="p-5 shadow-lg main-content">
+        <h1 class="main-title text-center fw-bold mb-3">Thanh Toán Vé Máy Bay</h1>
+        <form action="/vnp" method="POST" th:object="${flight}">
+            <!-- Thông tin chuyến bay -->
+            <div>
+                <fieldset class="title">
+                    <legend class="mb-3">Thông Tin Đặt Chỗ</legend>
+                    <input type="hidden" name="flightId" th:value="*{flightId}">
+                    <input type="hidden" name="ticketPrice" th:value="*{price}">
+                    <p>Số Chuyến Bay: <span id="flightNumber" th:text="*{flightNumber}"></span></p>
+                    <p>Ngày Khởi Hành: <span id="departureDate"
+                                             th:text="${#temporals.format(flight.departureTime, 'HH:mm dd-MM-yyyy')}"></span>
+                    </p>
+                    <p>Điểm Đi: <span id="departureAirport"
+                                      th:text="*{departureAirport.getCity()}"></span></p>
+                    <p>Điểm Đến: <span id="arrivalAirport"
+                                       th:text="*{arrivalAirport.getCity()}"></span></p>
+                    <p>Giá Vé: <span id="ticketPrice"
+                                     th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                    </p>
+                </fieldset>
+            </div>
+
+            <!-- Thông tin khách hàng -->
+            <div class="row">
+                <fieldset class="col-md-12" th:each="seat, status : ${seats}" th:classappend="${seats.size() > 1 ? 'col-lg-6' : 'col-lg-12'}" th:object="${bookingWrapper}">
+                    <legend>Thông Tin Khách Hàng <span th:text="${status.count}"></span></legend>
+
+                    <input class="mb-3 form-control" type="hidden" th:name="'customers[' + ${status.count} + '].numberOfSeats'"
+                           th:value="${seat.seatNumber}"/>
+
+                    <label th:for="'fullName_' + ${status.count}">Họ Tên:</label>
+                    <input class="mb-3 form-control" type="text" th:id="'fullName_' + ${status.count}"
+                           th:name="'customers[' + ${status.count} + '].name'" required>
+
+                    <label th:for="'dob_' + ${status.count}">Ngày Sinh:</label>
+                    <input class="mb-3 dob form-control" type="date" th:id="'dob_' + ${status.count}"
+                           th:name="'customers[' + ${status.count} + '].dob'" required>
+
+                    <label th:for="'gender_' + ${status.count}">Giới tính:</label>
+                    <select class="mb-3 form-select" type="text" th:id="'gender_' + ${status.count}"
+                            th:name="'customers[' + ${status.count} + '].gender'" required>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Giới tính thứ 3">Giới tính thứ 3</option>
+                    </select>
+
+                    <label th:for="'country_' + ${status.count}">Quốc Gia:</label>
+                    <input class="mb-3 form-control" type="text" th:id="'country_' + ${status.count}"
+                           th:name="'customers[' + ${status.count} + '].country'" required>
+
+                    <p>Số ghế: <span class="title" th:text="${seat.seatNumber}"></span></p>
+                </fieldset>
+            </div>
+
+            <!-- Thông tin liên hệ -->
+            <fieldset>
+                <legend class="mb-3">Thông Tin Liên Hệ</legend>
+                <label for="phone">Số Điện Thoại:</label>
+                <input class="mb-3 form-control" type="tel" id="phone" name="phone" required>
+                <label for="address">Địa Chỉ:</label>
+                <input class="form-control" type="text" id="address" name="address" required>
+            </fieldset>
+            <div class="d-flex justify-content-center">
+                <a th:href="@{/flights/{id}/seats(id=${flight.flightId})}" class="btn btn-secondary mt-5 w-25 me-4">Trở Lại</a>
+                <button type="submit" class="btn btn-primary mt-5 w-25">Thanh Toán</button>
+            </div>
+
+
+        </form>
+    </div>
+
+</div>
+<script>
+    flatpickr(".dob", {
+        dateFormat: 'd-m-Y',
+        maxDate: 'today'
+    });
+</script>
+<th:block th:replace="~{/common/layout :: footer}"></th:block>
+
+</body>
+</html>

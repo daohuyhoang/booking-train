@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán</title>
+    <style>
+        .info {
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .main-container {
+            margin-top: 100px;
+        }
+    </style>
+    <th:block th:replace="~{/common/layout :: head}"></th:block>
+</head>
+
+<body>
+<th:block th:replace="~{/common/layout :: navbar}"></th:block>
+
+<div class="container main-container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body p-5">
+                    <img th:src="@{/images/vnpay-logo.png}" style="width: 200px">
+                    <h2 class="card-title">Xác nhận thông tin</h2>
+                    <form th:action="@{/vnp/submitOrder/{flightId}(flightId=${flightId})}" method="post">
+                        <div th:each="info,status:${customers}">
+                            <fieldset>
+                                <legend class="info">Khách hàng <span th:text="${status.count}"></span></legend>
+                                <p>Họ tên : <span th:text="*{info.getName()}"></span></p>
+                                <p>Giới tính : <span th:text="*{info.getGender()}"></span></p>
+                                <p>Quốc gia : <span th:text="*{info.getCountry()}"></span></p>
+                                <p>Số ghế : <span th:text="*{info.getNumberOfSeats()}"></span></p>
+                            </fieldset>
+                        </div>
+                        <div class="form-group">
+                            <h4 >Số tiền cần thanh toán: <span th:text="${#numbers.formatDecimal(ticketPrice, 0, 'COMMA', 0, 'POINT')}"></span> VND</h4>
+                            <input type="hidden" name="amount" th:value="${#numbers.formatDecimal(ticketPrice, 0,0)}"/>
+                            <input type="hidden" name="orderInfo" th:value="Order"/>
+                        </div>
+                        <div class="d-flex justify-content-center mt-4">
+                            <button type="submit" class="btn btn-primary">Xác nhận thanh toán</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<th:block th:replace="~{/common/layout :: footer}"></th:block>
+</body>
+
+</html>

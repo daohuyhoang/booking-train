@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/toastr.min.css">
+</head>
+<body>
+<div class="wrapper">
+    <nav class="nav">
+        <a class="navbar-brand" href="/">
+            Booking Train
+        </a>
+
+        <div class="nav-button">
+            <button class="btn white-btn" id="loginBtn" onclick="login()">Đăng Nhập</button>
+            <button class="btn" id="registerBtn" onclick="register()">Đăng Ký</button>
+        </div>
+        <div class="nav-menu-btn">
+            <i class="bx bx-menu" onclick="myMenuFunction()"></i>
+        </div>
+    </nav>
+
+    <!----------------------------- Form box ----------------------------------->
+    <div class="form-box">
+
+        <!------------------- login form -------------------------->
+
+        <div class="login-container" id="login">
+            <form name='f' action="/login" method='POST'>
+                <div class="top">
+                    <header>Đăng Nhập</header>
+                </div>
+                <div class="input-box">
+                    <input type="text" name="username" class="input-field" placeholder="Tên đăng nhập" required>
+                    <i class="bx bx-user"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="password" class="input-field" placeholder="Mật khẩu" required>
+                    <i class="bx bx-lock-alt"></i>
+                </div>
+                <div class="input-box-submit">
+                    <input type="submit" class="submit" value="Đăng Nhập">
+                </div>
+                <div class="two-col">
+                    <div class="one">
+                        <input type="checkbox" id="login-check">
+                        <label for="login-check"> Ghi nhớ đăng nhập</label>
+                    </div>
+                    <!--                    <div class="two">-->
+                    <!--                        <label><a href="#">Forgot password?</a></label>-->
+                    <!--                    </div>-->
+                </div>
+            </form>
+        </div>
+
+        <!------------------- registration form -------------------------->
+        <div class="register-container" id="register">
+            <!-- Registration Info Form -->
+            <form name='registerForm' action="/register" method='POST' id="registerForm">
+                <div class="top">
+                    <header>Đăng Ký</header>
+                </div>
+                <div class="two-forms">
+                    <div class="input-box">
+                        <input type="text" name="fullname" id="fullname" class="input-field" placeholder="Tên đầy đủ" required>
+                        <i class="bx bx-user"></i>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" name="username" id="username" class="input-field" placeholder="Tên đăng nhập" required>
+                        <i class="bx bx-user"></i>
+                    </div>
+                </div>
+                <div class="input-box">
+                    <input type="email" name="email" id="email" class="input-field" placeholder="Email" required>
+                    <i class="bx bx-envelope"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="password" id="password" class="input-field" placeholder="Mật khẩu" required>
+                    <i class="bx bx-lock-alt"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="rePassword" id="rePassword" class="input-field" placeholder="Nhập lại mật khẩu"
+                           required>
+                    <i class="bx bx-lock-alt"></i>
+                </div>
+                
+                <!-- OTP Section - shown after clicking register -->
+                <div class="otp-section" id="otpSection" style="display: none;">
+                    <h4 style="text-align: center; margin-bottom: 10px; margin-top: 0; color: #333;">Xác thực Email</h4>
+                    <div class="otp-input-wrapper">
+                        <div class="input-box otp-input-box">
+                            <input type="text" name="otpCode" id="otpCode" class="input-field" placeholder="Nhập mã OTP" maxlength="6">
+                            <i class="bx bx-key"></i>
+                        </div>
+                        <div class="otp-actions">
+                            <button type="button" id="sendOtpBtn" class="otp-btn">Gửi mã OTP</button>
+                            <button type="button" id="resendOtpBtn" class="otp-btn" style="display: none;">Gửi lại</button>
+                        </div>
+                    </div>
+                    <div class="otp-timer" id="otpTimer" style="display: none;">
+                        <span>Mã OTP sẽ hết hạn sau: <span id="countdown">5:00</span></span>
+                    </div>
+                </div>
+                
+                <div class="input-box-submit">
+                    <button type="button" class="submit" id="registerSubmitBtn">Đăng Ký</button>
+                    <input type="submit" class="submit" value="Xác Thực và Hoàn Tất" id="verifyBtn" style="display: none;">
+                </div>
+                <!-- <div class="two-col">
+                    <div class="two">
+                        <label><a href="#">Terms & conditions</a></label>
+                    </div>
+                </div> -->
+            </form>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery-3.7.1.js"></script>
+<script src="/js/toastr.min.js"></script>
+<script src="/js/login.js"></script>
+<script>
+    $(document).ready(() => {
+        let error = `[[${error}]]`;
+        if (error !== "") {
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+            toastr["warning"](error)
+        }
+    })
+</script>
+<script>
+    $(document).ready(() => {
+        let success = `[[${success}]]`;
+        if (success !== "") {
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+            toastr["success"]("Đăng ký tài khoản thành công!")
+            location.reload();
+        }
+    })
+</script>
+
+
+</body>
+</html>

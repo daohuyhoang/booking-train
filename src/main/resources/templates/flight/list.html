@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lựa Chọn Chuyến Bay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <th:block th:replace="~{/common/layout :: head}"></th:block>
+    <link rel="stylesheet" href="/css/flights.css">
+</head>
+<body>
+<th:block th:replace="~{/common/layout :: navbar}"></th:block>
+
+<div class="container pt-5">
+    <div class="container-content my-5">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1><i class="fas fa-train me-3"></i>Lựa Chọn Chuyến Tàu Hỏa</h1>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="location-info">
+                    <p><i class="fas fa-map-marker-alt me-2" id="departureAirportId"></i>Ga khởi hành</p>
+                    <h3 th:text="${departureAirport.airportName} + ' (' + ${departureAirport.airportCode} + ')'"></h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="location-info">
+                    <p><i class="fas fa-map-marker-alt me-2"></i>Ga đến</p>
+                    <h3 th:text="${arrivalAirport.airportName} + ' (' + ${arrivalAirport.airportCode} + ')'"></h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="location-info" th:if="${!departureDate.isEmpty()}">
+                    <p><i class="fa-regular fa-calendar-days me-2"></i>Ngày</p>
+                    <h3 th:text="${departureDate}"></h3>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <form id="search-form" action="/flightDate" method="post">
+                    <input type="hidden" id="selected-date" name="selectedDate"/>
+                    <input type="hidden" name="departureAirportCode" th:value="${departureAirport.airportCode}"/>
+                    <input type="hidden" name="arrivalAirportCode" th:value="${arrivalAirport.airportCode}"/>
+                    <input type="hidden" name="passengers" th:value="${passengers}"/>
+                </form>
+                <div id="date-selector1" class="date-selector d-flex justify-content-center mb-4"></div>
+                <h3 th:if="${flights.isEmpty()}" class="text-center fw-bold text-result">Không có chuyến tàu hỏa cần
+                    tìm!!</h3>
+                <table th:unless="${flights.isEmpty()}" class="table flight-table">
+                    <thead>
+                    <tr>
+                        <td class="table-head">Chuyến Tàu Hỏa</td>
+                        <td class="table-head">Trạng Thái</td>
+                        <td class="table-head">Giá</td>
+                        <td class="table-head"></td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="flight : ${flights}">
+                        <td>
+                            <p th:text="${flight.airline}" class="flight-number fw-bold"></p>
+                            <p th:text="'Ngày: ' + ${#temporals.format(flight.departureTime, 'dd-MM-yyyy')}"></p>
+                            <p th:text="${#temporals.format(flight.departureTime, 'HH:mm')} + ' đến ' + ${#temporals.format(flight.arrivalTime, 'HH:mm')}"
+                               class="flight-time"></p>
+                            <p><span class="flight-details"><i class="fas fa-train me-2"></i></span><span
+                                    th:text=" 'Tàu ' + ${flight.flightNumber}"
+                                    class="flight-number"></span></p>
+                        </td>
+                        <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
+                        <td th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + ' VND'"
+                            class="price"></td>
+                        <td>
+                            <div class="row mt-4">
+                                <div class="col-12 text-end">
+                                    <a th:href="@{'/flights/' + ${flight.flightId} + '/seats'}"
+                                       th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled' : 'btn btn-primary'}">
+                                        <i class="fas fa-arrow-right me-2"></i>Chọn
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{/common/layout :: footer}"></th:block>
+</body>
+</html>

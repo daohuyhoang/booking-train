@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <th:block th:replace="~{/common/layout :: head}"></th:block>
+    <link rel="stylesheet" href="/css/seat-re.css">
+</head>
+<body>
+<th:block th:replace="~{/common/layout :: navbar}"></th:block>
+
+<div class="container">
+    <div class="row">
+        <div class="col-xl-6 col-lg-12">
+            <div class="plane mx-auto">
+                <div class="cockpit-custom logo-header">
+                    <h2>SkyJourney</h2>
+                </div>
+                <div class="exit exit--front fuselage">
+
+                </div>
+                <ol th:each="seatRow, stat : ${seatRows}" class="cabin fuselage">
+                    <li th:classappend="'row--' + ${stat.count}">
+                        <ol class="seats" type="A">
+                            <li th:each="row : ${seatRow}" class="seat">
+                                <input th:attr="disabled = ${row.availabilityStatus == 'AVAILABLE' ? null : 'disabled'}"
+                                       th:classappend="${row.availabilityStatus == 'AVAILABLE' ? 'available' : 'unavailable'}"
+                                       type="checkbox" th:id="${row.seatNumber}" th:data-seat-id="${row.seatId}"
+                                       th:data-availability="${row.availabilityStatus}"
+                                       onclick="toggleSeat(this)"/>
+                                <label th:for="${row.seatNumber}" th:text="${row.seatNumber}"></label>
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+                <div class="exit exit--back fuselage">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="summary shadow mx-auto h-50 position-sticky top-50 col-xl-6 col-lg-12">
+            <div class="w-75 mx-auto">
+                <h4 class="text-center mb-5 text">Thông Tin Đặt Chỗ</h4>
+                <p class="fw-bold text">Số ghế đã chọn: <span id="selected-count">0</span></p>
+                <p class="fw-bold text">Ghế: <span id="selected-seats"></span></p>
+                <p class="fw-bold text">Tổng tiền: <span id="total-price">0 VND</span></p>
+            </div>
+            <div class="d-flex justify-content-center mt-4">
+                <form action="/pay" method="post">
+                    <input type="hidden" name="seatIds" id="seat-ids">
+                    <input type="hidden" id="seat-price" th:value="${seatPrice}">
+                    <input type="hidden" name="flightId" th:value="${flightId}"/>
+                    <button class="btn btn-warning" type="submit">Tiến hành thanh toán</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{/common/layout :: footer}"></th:block>
+<script src="/js/seat.js"></script>
+<script src="/js/socket.js"></script>
+</body>
+</html>
