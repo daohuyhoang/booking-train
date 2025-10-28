@@ -38,9 +38,12 @@ function toggleSeat(seatElement) {
     updateSeatInputValue();
 }
 
-document.querySelector('form[action="/pay"]').addEventListener('submit', function() {
-    updateSeatInputValue();
-});
+const payForm = document.querySelector('form[action="/pay"]');
+if (payForm) {
+    payForm.addEventListener('submit', function() {
+        updateSeatInputValue();
+    });
+}
 
 
 
