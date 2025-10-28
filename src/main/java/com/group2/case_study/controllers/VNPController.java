@@ -56,16 +56,17 @@ public class VNPController {
         if (session.getAttribute(PAYMENT_IDENTIFIER) != null) {
             return "pay/error";
         }
-
-
-        List<BookingDto> customers = bookingWrapper.getCustomers();
+        List<BookingDto> customers = (bookingWrapper != null) ? bookingWrapper.getCustomers() : null;
         List<BookingDto> customersNew = new ArrayList<>();
-        for (BookingDto customer : customers) {
-            if (customer.getName() == null) {
-                continue;
+        if (customers != null) {
+            for (BookingDto customer : customers) {
+                if (customer == null || customer.getName() == null) {
+                    continue;
+                }
+                customersNew.add(customer);
             }
-            customersNew.add(customer);
         }
+        
         session.setAttribute("bookingWrappers", customersNew);
         double totalPrice = customersNew.size() * ticketPrice;
         model.addAttribute("ticketPrice", totalPrice);

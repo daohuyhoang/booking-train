@@ -56,3 +56,36 @@ input[type="date"], input[type="number"], input[type="tel"], input[type="email"]
     border-radius: 30px;
     background-color: #f4f4fd;
 }
+.seats-list {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #DEE2E6;
+}
+
+.seats-list p {
+    font-weight: 600;
+    color: #003366;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.seats-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.seats-list li {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #003366;
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95em;
+}

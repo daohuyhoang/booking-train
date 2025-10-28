@@ -460,36 +460,35 @@
                 returnSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         } else if (currentLeg === 'return' && selection.outbound && selection.return) {
-            // Both legs selected - submit payment
-            submitPayment('return');
+            // Both legs selected - submit payment with both legs
+            submitPayment('both');
         }
     });
 
     function submitPayment(leg) {
-        const data = selection[leg];
-        if (!data) {
-            console.error('No selection data for leg:', leg);
-            return;
-        }
-
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/pay';
-        
-        const flightInput = document.createElement('input');
-        flightInput.type = 'hidden';
-        flightInput.name = 'flightId';
-        flightInput.value = data.flightId;
-        form.appendChild(flightInput);
-        
-        data.seatIds.forEach(id => {
-            const seatInput = document.createElement('input');
-            seatInput.type = 'hidden';
-            seatInput.name = 'seatIds';
-            seatInput.value = id;
-            form.appendChild(seatInput);
-        });
-        
+
+        if (leg === 'both') {
+            const out = selection.outbound;
+            const ret = selection.return;
+            if (!out || !ret) return;
+            const of = document.createElement('input'); of.type = 'hidden'; of.name = 'outboundFlightId'; of.value = out.flightId; form.appendChild(of);
+            out.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'outboundSeatIds'; i.value = id; form.appendChild(i); });
+            const rf = document.createElement('input'); rf.type = 'hidden'; rf.name = 'returnFlightId'; rf.value = ret.flightId; form.appendChild(rf);
+            ret.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'returnSeatIds'; i.value = id; form.appendChild(i); });
+        } else {
+            const data = selection[leg];
+            if (!data) return;
+            const flightInput = document.createElement('input');
+            flightInput.type = 'hidden';
+            flightInput.name = 'flightId';
+            flightInput.value = data.flightId;
+            form.appendChild(flightInput);
+            data.seatIds.forEach(id => { const seatInput = document.createElement('input'); seatInput.type = 'hidden'; seatInput.name = 'seatIds'; seatInput.value = id; form.appendChild(seatInput); });
+        }
+
         document.body.appendChild(form);
         form.submit();
     }

@@ -32,21 +32,63 @@ public class PayController {
     private IUserService userService;
 
     @PostMapping
-    public String showPay(@RequestParam("flightId") int flightId,
+    public String showPay(@RequestParam(value = "flightId", required = false) Integer flightId,
+                          @RequestParam(value = "seatIds", required = false) List<Integer> seatIds,
+                          @RequestParam(value = "outboundFlightId", required = false) Integer outboundFlightId,
+                          @RequestParam(value = "outboundSeatIds", required = false) List<Integer> outboundSeatIds,
+                          @RequestParam(value = "returnFlightId", required = false) Integer returnFlightId,
+                          @RequestParam(value = "returnSeatIds", required = false) List<Integer> returnSeatIds,
                           HttpSession session,
-                          @RequestParam("seatIds") List<Integer> seatIds,
                           Principal principal,
                           Model model) {
         LocalDateTime holdExpiration = LocalDateTime.now().plusMinutes(2);
         String userName = principal.getName();
         int id = userService.findIdByUserName(userName);
-        seatService.updateSeatStatus(seatIds, "BOOKED" + id, holdExpiration);
-        flightService.saveUserId(flightId,id);
-        Flight flight = flightService.getFlightById(flightId);
-        List<Seat> seats = seatService.findAllSeat(flightId,id);
-        session.setAttribute("seats", seatIds);
-        model.addAttribute("flight", flight);
-        model.addAttribute("seats", seats);
-        return "pay/show-pay";
+
+        if (outboundFlightId == null && returnFlightId == null && flightId != null && seatIds != null && !seatIds.isEmpty()) {
+            seatService.updateSeatStatus(seatIds, "BOOKED" + id, holdExpiration);
+            flightService.saveUserId(flightId, id);
+            Flight flight = flightService.getFlightById(flightId);
+            List<Seat> seats = seatService.findAllSeat(flightId, id);
+            session.setAttribute("seats", seatIds);
+            model.addAttribute("flight", flight);
+            model.addAttribute("seats", seats);
+            return "pay/show-pay";
+        }
+
+        if (outboundFlightId != null && outboundSeatIds != null && !outboundSeatIds.isEmpty()
+                && returnFlightId != null && returnSeatIds != null && !returnSeatIds.isEmpty()) {
+            seatService.updateSeatStatus(outboundSeatIds, "BOOKED" + id, holdExpiration);
+            flightService.saveUserId(outboundFlightId, id);
+            seatService.updateSeatStatus(returnSeatIds, "BOOKED" + id, holdExpiration);
+            flightService.saveUserId(returnFlightId, id);
+
+            Flight outboundFlight = flightService.getFlightById(outboundFlightId);
+            Flight returnFlight = flightService.getFlightById(returnFlightId);
+            List<Seat> outboundSeats = seatService.findAllSeat(outboundFlightId, id);
+            List<Seat> returnSeats = seatService.findAllSeat(returnFlightId, id);
+
+            List<Integer> allSeatIds = new ArrayList<>();
+            allSeatIds.addAll(outboundSeatIds);
+            allSeatIds.addAll(returnSeatIds);
+            session.setAttribute("seats", allSeatIds);
+
+            model.addAttribute("outboundFlight", outboundFlight);
+            model.addAttribute("returnFlight", returnFlight);
+            model.addAttribute("outboundSeats", outboundSeats);
+            model.addAttribute("returnSeats", returnSeats);
+            model.addAttribute("tripType", "roundtrip");
+
+            long outboundTotal = Math.round(outboundSeatIds.size() * outboundFlight.getPrice());
+            long returnTotal = Math.round(returnSeatIds.size() * returnFlight.getPrice());
+            long grandTotal = outboundTotal + returnTotal;
+            model.addAttribute("grandTotal", grandTotal);
+            
+            double perPassengerPrice = (outboundSeatIds.isEmpty() ? 0 : ((double) grandTotal) / outboundSeatIds.size());
+            model.addAttribute("perPassengerPrice", perPassengerPrice);
+            return "pay/show-pay";
+        }
+
+        throw new IllegalArgumentException("Invalid booking request");
     }
 }
