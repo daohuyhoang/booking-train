@@ -30,7 +30,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         } else if (authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_CUSTOMER"))) {
             if (savedRequest != null) {
-                redirectUrl = savedRequest.getRedirectUrl();
+                // redirectUrl = savedRequest.getRedirectUrl();
+                redirectUrl = "/";
             }
         }
 

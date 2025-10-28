@@ -14,6 +14,8 @@ public interface IFlightService {
 
     List<Flight> findAllFlights(LocalDate localDate, Integer arrivalAirportId, Integer departureAirportId);
 
+    List<Flight> findAllFlightsByDateOnly(LocalDate localDate, Integer arrivalAirportId, Integer departureAirportId);
+
     List<Flight> findAllFlightsByCurrentDateTime();
 
     List<Airport> getDistinctDepartureAirportsWithFutureFlights();

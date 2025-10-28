@@ -52,6 +52,8 @@ public class FlightController {
     public String searchFlights(@RequestParam (value = "departureAirportId", defaultValue = "") Integer departureAirportId,
                                 @RequestParam (value = "arrivalAirportId", defaultValue = "") Integer arrivalAirportId,
                                 @RequestParam (value = "departure-date", defaultValue = "") String departureDate,
+                                @RequestParam (value = "tripType", defaultValue = "oneway") String tripType,
+                                @RequestParam (value = "return-date", defaultValue = "") String returnDate,
                                 Model model,
                                 RedirectAttributes redirectAttributes
                                 ) {
@@ -68,6 +70,7 @@ public class FlightController {
             Airport departureAirport = airportService.findById(departureAirportId);
             Airport arrivalAirport = airportService.findById(arrivalAirportId);
             List<Flight> flights;
+            List<Flight> returnFlights = null;
             if(departureDate.isEmpty()){
                 flights = flightService.findAllFlightsByCurrentDate(departureAirportId, arrivalAirportId);
             } else {
@@ -76,12 +79,30 @@ public class FlightController {
                 } catch (DateTimeParseException e) {
                     throw new IllegalArgumentException("Invalid date format. Please use dd-MM-yyyy.");
                 }
-                flights = flightService.findAllFlights(localDate, arrivalAirportId, departureAirportId);
+                flights = flightService.findAllFlightsByDateOnly(localDate, arrivalAirportId, departureAirportId);
+            }
+            if ("roundtrip".equalsIgnoreCase(tripType)) {
+                model.addAttribute("tripType", "roundtrip");
+                if (!returnDate.isEmpty()) {
+                    try {
+                        LocalDate returnLocalDate = LocalDate.parse(returnDate, inputFormatter);
+                        
+                        returnFlights = flightService.findAllFlightsByDateOnly(returnLocalDate, departureAirportId, arrivalAirportId);
+                    } catch (DateTimeParseException e) {
+                        throw new IllegalArgumentException("Invalid date format. Please use dd-MM-yyyy.");
+                    }
+                } else {
+                    returnFlights = flightService.findAllFlightsByCurrentDate(arrivalAirportId, departureAirportId);
+                }
+            } else {
+                model.addAttribute("tripType", "oneway");
             }
             model.addAttribute("flights", flights);
             model.addAttribute("departureAirport", departureAirport);
             model.addAttribute("arrivalAirport", arrivalAirport);
             model.addAttribute("departureDate", departureDate);
+            model.addAttribute("returnFlights", returnFlights);
+            model.addAttribute("returnDate", returnDate);
             return "flight/list";
         }
 

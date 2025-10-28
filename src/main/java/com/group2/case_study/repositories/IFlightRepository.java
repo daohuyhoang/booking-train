@@ -23,6 +23,13 @@ public interface IFlightRepository extends JpaRepository<Flight, Integer> {
             @Param("currentDateTime") LocalDateTime currentDateTime
     );
 
+    @Query("SELECT f FROM Flight f WHERE FUNCTION('DATE', f.departureTime) = :localDate AND f.arrivalAirport.airportId = :arrivalAirportId AND f.departureAirport.airportId = :departureAirportId")
+    List<Flight> findFlightsByDate(
+            @Param("localDate") LocalDate localDate,
+            @Param("arrivalAirportId") Integer arrivalAirportId,
+            @Param("departureAirportId") Integer departureAirportId
+    );
+
     @Query("SELECT f FROM Flight f WHERE f.departureTime > :currentDateTime")
     List<Flight> findFlightsAfterCurrentDateTime(
             @Param("currentDateTime") LocalDateTime currentDateTime

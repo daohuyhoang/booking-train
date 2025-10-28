@@ -1,9 +1,60 @@
 new WOW().init();
 
+let departurePicker;
+let returnPicker;
+
 flatpickr(".date-flatpickr", {
     dateFormat: 'd-m-Y',
     minDate: 'today',
-    maxDate: new Date().fp_incr(14)
+    maxDate: new Date().fp_incr(180)
+});
+
+$(document).ready(function () {
+    // initialize individual pickers if present
+    if (document.getElementById('departure-date')) {
+        departurePicker = flatpickr('#departure-date', {
+            dateFormat: 'd-m-Y',
+            minDate: 'today',
+            onChange: function(selectedDates) {
+                if (returnPicker && selectedDates && selectedDates[0]) {
+                    returnPicker.set('minDate', selectedDates[0]);
+                }
+            }
+        });
+    }
+    if (document.getElementById('return-date')) {
+        returnPicker = flatpickr('#return-date', {
+            dateFormat: 'd-m-Y',
+            minDate: 'today'
+        });
+    }
+
+    // toggle return date by trip type
+    const oneWay = document.getElementById('oneWay');
+    const roundTrip = document.getElementById('roundTrip');
+    const returnWrap = document.getElementById('return-date-wrapper');
+    const returnInput = document.getElementById('return-date');
+
+    function updateTripUI() {
+        if (roundTrip && roundTrip.checked) {
+            returnWrap && (returnWrap.style.display = 'block');
+            if (departurePicker && returnPicker) {
+                const depDate = departurePicker.selectedDates[0];
+                if (depDate) {
+                    returnPicker.set('minDate', depDate);
+                }
+            }
+        } else {
+            returnWrap && (returnWrap.style.display = 'none');
+            if (returnInput) returnInput.value = '';
+        }
+    }
+
+    if (oneWay && roundTrip) {
+        oneWay.addEventListener('change', updateTripUI);
+        roundTrip.addEventListener('change', updateTripUI);
+        updateTripUI();
+    }
 });
 
 
@@ -135,6 +186,8 @@ $(document).ready(function () {
     const form = $('form[action="/flights/search"]');
     const departureInput = $('#departureAirportId');
     const arrivalInput = $('#arrivalAirportId');
+    const tripTypeInput = $('input[name="tripType"]');
+    const returnDateInput = $('#return-date');
 
     form.on('submit', function (event) {
         let isValid = true;
@@ -146,6 +199,22 @@ $(document).ready(function () {
         } else if (arrivalInput.val() === "") {
             message += "Vui lòng chọn điểm đến!\n";
             isValid = false;
+        }
+
+        if (tripTypeInput.filter(':checked').val() === 'roundtrip') {
+            if (!returnDateInput.val()) {
+                message += "Vui lòng chọn ngày về!\n";
+                isValid = false;
+            } else if ($('#departure-date').val() && returnDateInput.val()) {
+                const [d,dM,dY] = $('#departure-date').val().split('-');
+                const [r,rM,rY] = returnDateInput.val().split('-');
+                const dep = new Date(+dY, +dM-1, +d);
+                const ret = new Date(+rY, +rM-1, +r);
+                if (ret < dep) {
+                    message += "Ngày về phải sau hoặc bằng ngày đi!\n";
+                    isValid = false;
+                }
+            }
         }
 
         if (!isValid) {

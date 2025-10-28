@@ -55,6 +55,18 @@
             <div class="booking-section w-75 mx-auto">
                 <h2 class="text-center">Đặt Vé Tàu Hỏa</h2>
                 <form id="form-search" action="/flights/search" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6 d-flex align-items-center gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tripType" id="oneWay" value="oneway" checked>
+                                <label class="form-check-label" for="oneWay">1 chiều</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tripType" id="roundTrip" value="roundtrip">
+                                <label class="form-check-label" for="roundTrip">Khứ hồi</label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="departure" class="form-label">Ga Khởi Hành</label>
@@ -89,6 +101,13 @@
                                 <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
                                 <input name="departure-date" th:value="${departureTime}" type="text"
                                        class="form-control date-flatpickr" id="departure-date" placeholder="Chọn ngày">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3" id="return-date-wrapper" style="display: none;">
+                            <label for="return-date" class="form-label">Ngày Về</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                                <input name="return-date" type="text" class="form-control date-flatpickr" id="return-date" placeholder="Chọn ngày về">
                             </div>
                         </div>
                     </div>

@@ -85,6 +85,69 @@
                     </tr>
                     </tbody>
                 </table>
+                <div th:if="${tripType == 'roundtrip'}">
+                    <hr/>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <h2 class="fw-bold">Chuyến Về</h2>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="location-info">
+                                <p><i class="fas fa-map-marker-alt me-2" id="departureAirportId"></i>Ga khởi hành</p>
+                                <h3 th:text="${arrivalAirport.airportName} + ' (' + ${arrivalAirport.airportCode} + ')'"></h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="location-info">
+                                <p><i class="fas fa-map-marker-alt me-2"></i>Ga đến</p>
+                                <h3 th:text="${departureAirport.airportName} + ' (' + ${departureAirport.airportCode} + ')'"></h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="location-info" th:if="${returnDate != null and !#strings.isEmpty(returnDate)}">
+                                <p><i class="fa-regular fa-calendar-days me-2"></i>Ngày về</p>
+                                <h3 th:text="${returnDate}"></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 th:if="${returnFlights == null or returnFlights.isEmpty()}" class="text-center fw-bold text-result">Không có chuyến về phù hợp</h3>
+                    <table th:unless="${returnFlights == null or returnFlights.isEmpty()}" class="table flight-table mt-3">
+                        <thead>
+                        <tr>
+                            <td class="table-head">Chuyến Tàu Hỏa</td>
+                            <td class="table-head">Trạng Thái</td>
+                            <td class="table-head">Giá</td>
+                            <td class="table-head"></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="flight : ${returnFlights}">
+                            <td>
+                                <p th:text="${flight.airline}" class="flight-number fw-bold"></p>
+                                <p th:text="'Ngày: ' + ${#temporals.format(flight.departureTime, 'dd-MM-yyyy')}"></p>
+                                <p th:text="${#temporals.format(flight.departureTime, 'HH:mm')} + ' đến ' + ${#temporals.format(flight.arrivalTime, 'HH:mm')}"
+                                   class="flight-time"></p>
+                                <p><span class="flight-details"><i class="fas fa-train me-2"></i></span><span
+                                        th:text=" 'Tàu ' + ${flight.flightNumber}"
+                                        class="flight-number"></span></p>
+                            </td>
+                            <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
+                            <td th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + ' VND'"
+                                class="price"></td>
+                            <td>
+                                <div class="row mt-4">
+                                    <div class="col-12 text-end">
+                                        <a th:href="@{'/flights/' + ${flight.flightId} + '/seats'}"
+                                           th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled' : 'btn btn-primary'}">
+                                            <i class="fas fa-arrow-right me-2"></i>Chọn
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

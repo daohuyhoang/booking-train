@@ -39,6 +39,11 @@ public class FlightService implements IFlightService {
     }
 
     @Override
+    public List<Flight> findAllFlightsByDateOnly(LocalDate localDate, Integer arrivalAirportId, Integer departureAirportId) {
+        return flightRepository.findFlightsByDate(localDate, arrivalAirportId, departureAirportId);
+    }
+
+    @Override
     public List<Flight> findAllFlightsByCurrentDateTime() {
         LocalDateTime currentDateTime = LocalDateTime.now();
         return flightRepository.findFlightsAfterCurrentDateTime(currentDateTime);
