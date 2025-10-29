@@ -29,22 +29,37 @@ public class SeatService implements ISeatService {
     @Override
     public Map<Integer, List<List<Seat>>> getSeatsGroupedByCoach(Integer flightId) {
         List<Seat> seats = seatRepository.findSeatsByFlightId(flightId);
-        
-        // Group seats by coachNumber
+
         Map<Integer, List<Seat>> seatsByCoach = seats.stream()
                 .collect(Collectors.groupingBy(Seat::getCoachNumber, TreeMap::new, Collectors.toList()));
-        
-        // Group seats in each coach by rows (6 seats per row)
+
         Map<Integer, List<List<Seat>>> result = new LinkedHashMap<>();
+
         for (Map.Entry<Integer, List<Seat>> entry : seatsByCoach.entrySet()) {
             List<Seat> coachSeats = entry.getValue();
-            List<List<Seat>> seatRows = new ArrayList<>();
-            for (int i = 0; i < coachSeats.size(); i += 6) {
-                seatRows.add(coachSeats.subList(i, Math.min(i + 6, coachSeats.size())));
-            }
-            result.put(entry.getKey(), seatRows);
+
+            coachSeats.sort(Comparator.comparing(seat -> {
+        try {
+            return Integer.parseInt(seat.getSeatNumber().replaceAll("\\D+", ""));
+        } catch (Exception e) {
+            return Integer.MAX_VALUE;
         }
-        
+    }));
+
+
+            List<List<Seat>> rows = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                rows.add(new ArrayList<>());
+            }
+
+            for (int i = 0; i < coachSeats.size(); i++) {
+                int rowIndex = i % 4;
+                rows.get(rowIndex).add(coachSeats.get(i));
+            }
+
+            result.put(entry.getKey(), rows);
+        }
+
         return result;
     }
 

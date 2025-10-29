@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Chọn Ghế</title>
@@ -9,84 +9,89 @@
 </head>
 <body>
 <th:block th:replace="~{/common/layout :: navbar}"></th:block>
+
 <div class="container">
+    <!-- ================= TOA TÀU (Full Width) ================= -->
     <div class="row">
-        <div class="col-xl-6 col-lg-12">
-            <!-- Coach Tabs -->
+        <div class="col-xl-12">
             <div class="coach-tabs mb-3">
                 <ul class="nav nav-pills justify-content-center" role="tablist">
                     <li class="nav-item" th:each="coach, iterStat : ${seatsByCoach}" role="presentation">
-                        <button class="nav-link" 
+                        <button class="nav-link"
                                 th:classappend="${iterStat.first} ? 'active' : ''"
-                                th:id="'coach-tab-' + ${coach.key}" 
+                                th:id="'coach-tab-' + ${coach.key}"
                                 th:data-coach="${coach.key}"
-                                data-bs-toggle="pill" 
-                                th:data-bs-target="'#coach-' + ${coach.key}" 
-                                type="button" 
-                                role="tab">
-                            <i class="fas fa-train me-2"></i>Toa <span th:text="${coach.key}"></span>
+                                data-bs-toggle="pill"
+                                th:data-bs-target="'#coach-' + ${coach.key}"
+                                type="button" role="tab">
+                            <i class="fas fa-train me-2"></i>
+                            Toa <span th:text="${coach.key}"></span>
                         </button>
                     </li>
                 </ul>
             </div>
+        </div>
+    </div>
 
-            <!-- Coach Content -->
+    <!-- ================= LƯỚI GHẾ & THÔNG TIN (Split 6-6) ================= -->
+    <div class="row">
+        <!-- Left: Danh sách ghế -->
+        <div class="col-xl-9 col-lg-12">
             <div class="tab-content">
-                <div th:each="coach, iterStat : ${seatsByCoach}" 
-                     class="tab-pane fade" 
+                <div th:each="coach, iterStat : ${seatsByCoach}"
+                     class="tab-pane fade"
                      th:classappend="${iterStat.first} ? 'show active' : ''"
-                     th:id="'coach-' + ${coach.key}" 
+                     th:id="'coach-' + ${coach.key}"
                      role="tabpanel">
-                    
+
                     <div class="plane mx-auto">
-                        <div class="cockpit-custom logo-header">
+                        <div class="cockpit-custom logo-header text-center mb-3">
                             <h2>Toa <span th:text="${coach.key}"></span></h2>
                         </div>
-                        <div class="exit exit--front fuselage"></div>
-                        
-                        <ol th:each="seatRow, stat : ${coach.value}" class="cabin fuselage">
-                            <li th:classappend="'row--' + ${stat.count}">
-                                <ol class="seats" type="A">
-                                    <li th:each="row : ${seatRow}" class="seat">
-                                        <input th:attr="disabled = ${row.availabilityStatus == 'AVAILABLE' ? null : 'disabled'}"
-                                               th:classappend="${row.availabilityStatus == 'AVAILABLE' ? 'available' : 'unavailable'}"
-                                               type="checkbox" 
-                                               th:id="${row.seatNumber}" 
-                                               th:data-seat-id="${row.seatId}"
-                                               th:data-seat-number="${row.seatNumber}"
-                                               th:data-coach="${row.coachNumber}"
-                                               th:data-availability="${row.availabilityStatus}"
-                                               onclick="toggleSeat(this)"/>
-                                        <label th:for="${row.seatNumber}" th:text="${row.seatNumber}"></label>
-                                    </li>
-                                </ol>
-                            </li>
-                        </ol>
-                        
-                        <div class="exit exit--back fuselage"></div>
+
+                        <!-- Lưới ghế 4 hàng × 10 cột -->
+                        <div class="seat-grid">
+                            <div th:each="seatRow, rowStat : ${coach.value}">
+                                <div th:each="seat : ${seatRow}" class="seat">
+                                    <input th:attr="disabled = ${seat.availabilityStatus == 'AVAILABLE' ? null : 'disabled'}"
+                                           th:classappend="${seat.availabilityStatus == 'AVAILABLE' ? 'available' : 'unavailable'}"
+                                           type="checkbox"
+                                           th:id="${seat.seatNumber}"
+                                           th:data-seat-id="${seat.seatId}"
+                                           th:data-seat-number="${seat.seatNumber}"
+                                           th:data-coach="${seat.coachNumber}"
+                                           onclick="toggleSeat(this)"/>
+                                    <label th:for="${seat.seatNumber}" th:text="${seat.seatNumber}"></label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="summary shadow mx-auto h-50 position-sticky top-50 col-xl-6 col-lg-12">
-            <div class="w-75 mx-auto">
-                <h4 class="text-center mb-5 text">Thông Tin Đặt Chỗ</h4>
-                <p class="fw-bold text">Số ghế đã chọn: <span id="selected-count">0</span></p>
-                <p class="fw-bold text">Ghế: <span id="selected-seats" class="selected-seats">Chưa chọn ghế</span></p>
-                <p class="fw-bold text">Tổng tiền: <span id="total-price" class="total-price">0 VND</span></p>
-            </div>
-            <div class="d-flex justify-content-center mt-4">
-                <form action="/pay" method="post">
-                    <input type="hidden" name="seatIds" id="seat-ids">
-                    <input type="hidden" id="seat-price" th:value="${seatPrice}">
-                    <input type="hidden" name="flightId" th:value="${flightId}"/>
-                    <button class="btn btn-warning" type="submit">Tiến hành thanh toán</button>
-                </form>
+
+        <!-- Right: Thông tin đặt chỗ -->
+        <div class="col-xl-3 col-lg-12">
+            <div class="summary shadow mx-auto position-sticky top-50">
+                <div class="w-100 mx-auto">
+                    <h4 class="text-center mb-5 text">Thông Tin Đặt Chỗ</h4>
+                    <p class="fw-bold text">Số ghế đã chọn: <span id="selected-count">0</span></p>
+                    <p class="fw-bold text">Ghế: <span id="selected-seats" class="selected-seats">Chưa chọn ghế</span></p>
+                    <p class="fw-bold text">Tổng tiền: <span id="total-price" class="total-price">0 VND</span></p>
+                </div>
+                <div class="d-flex justify-content-center mt-4">
+                    <form action="/pay" method="post">
+                        <input type="hidden" name="seatIds" id="seat-ids">
+                        <input type="hidden" id="seat-price" th:value="${seatPrice}">
+                        <input type="hidden" name="flightId" th:value="${flightId}"/>
+                        <button class="btn btn-warning" type="submit">Tiến hành thanh toán</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 <th:block th:replace="~{/common/layout :: footer}"></th:block>
 <script src="/js/seat.js"></script>
 <script src="/js/socket.js"></script>

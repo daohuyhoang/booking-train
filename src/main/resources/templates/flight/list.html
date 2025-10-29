@@ -358,16 +358,26 @@
             }
 
             const wrapper = document.createElement('div');
-            wrapper.className = 'row m-0';
+            wrapper.className = 'container-fluid';
+
+            // Row 1: Tabs toa tàu (full width)
+            const tabsRow = document.createElement('div');
+            tabsRow.className = 'row';
+            const tabsCol = document.createElement('div');
+            tabsCol.className = 'col-12';
+            if (coachTabs) tabsCol.appendChild(coachTabs.cloneNode(true));
+            tabsRow.appendChild(tabsCol);
+
+            // Row 2: Seat grid (left) + Summary (right)
+            const contentRow = document.createElement('div');
+            contentRow.className = 'row mt-3';
 
             const leftCol = document.createElement('div');
-            leftCol.className = 'col-xl-6 col-lg-12 p-3';
+            leftCol.className = 'col-xl-8 col-lg-12 p-3';
+            if (tabContent) leftCol.appendChild(tabContent.cloneNode(true));
 
             const rightCol = document.createElement('div');
-            rightCol.className = 'col-xl-6 col-lg-12 p-3';
-
-            if (coachTabs) leftCol.appendChild(coachTabs.cloneNode(true));
-            if (tabContent) leftCol.appendChild(tabContent.cloneNode(true));
+            rightCol.className = 'col-xl-4 col-lg-12 p-3';
 
             if (summary) {
                 const summaryClone = summary.cloneNode(true);
@@ -380,9 +390,13 @@
             if (flightHidden) rightCol.appendChild(flightHidden.cloneNode(true));
             if (seatIdsHidden) rightCol.appendChild(seatIdsHidden.cloneNode(true));
 
+            contentRow.appendChild(leftCol);
+            contentRow.appendChild(rightCol);
+
+            wrapper.appendChild(tabsRow);
+            wrapper.appendChild(contentRow);
+
             body.innerHTML = '';
-            wrapper.appendChild(leftCol);
-            wrapper.appendChild(rightCol);
             body.appendChild(wrapper);
 
             const title = document.getElementById('seat-modal-title');
@@ -398,7 +412,6 @@
             }
 
             initializeBootstrapTabs();
-
             initializeSeatSelection();
 
             ensureModal().show();
@@ -485,7 +498,7 @@
 
             const of = document.createElement('input'); of.type = 'hidden'; of.name = 'outboundFlightId'; of.value = out.flightId; form.appendChild(of);
             out.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'outboundSeatIds'; i.value = id; form.appendChild(i); });
-            const rf = document.createElement('input'); rf.type = 'hidden'; rf.name = 'returnFlightId'; rf.value = ret.flightId; form.appendOfChild(rf);
+            const rf = document.createElement('input'); rf.type = 'hidden'; rf.name = 'returnFlightId'; rf.value = ret.flightId; form.appendChild(rf);
             ret.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'returnSeatIds'; i.value = id; form.appendChild(i); });
         } else {
             const data = selection[leg];
