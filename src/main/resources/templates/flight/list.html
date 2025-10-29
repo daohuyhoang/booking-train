@@ -11,7 +11,7 @@
 </head>
 <body>
 <th:block th:replace="~{/common/layout :: navbar}"></th:block>
-
+<!-- file.list.html -->
 <div class="container pt-5">
     <div class="container-content my-5">
         <div class="row">
@@ -213,7 +213,7 @@
             s.onload = () => resolve();
             s.onerror = () => {
                 console.error('Failed to load Bootstrap');
-                resolve(); // Continue anyway
+                resolve();
             };
             document.body.appendChild(s);
         });
@@ -226,48 +226,57 @@
         return modal;
     }
 
-    // Re-initialize seat selection logic after modal content is loaded
     function initializeSeatSelection() {
-        const seats = document.querySelectorAll('#seat-modal-body .seat:not(.occupied):not(.maintenance)');
+        const seatInputs = document.querySelectorAll('#seat-modal-body .tab-pane input[type="checkbox"]:not([disabled])');
+        
         const seatIdsInput = document.getElementById('seat-ids');
         const seatPriceInput = document.getElementById('seat-price');
         const selectedSeatsDisplay = document.querySelector('#seat-modal-body .selected-seats');
         const totalPriceDisplay = document.querySelector('#seat-modal-body .total-price');
-        const flightIdInput = document.querySelector('#seat-modal-body input[name="flightId"]');
-        
-        if (!flightIdInput) {
-            console.error('Flight ID input not found');
+        const selectedCountDisplay = document.querySelector('#seat-modal-body #selected-count');
+
+        if (!seatIdsInput || !seatPriceInput) {
+            console.error('Missing required elements for seat selection');
             return;
         }
 
-        const basePricePerSeat = seatPriceInput ? parseFloat(seatPriceInput.value) || 0 : 0;
+        const basePricePerSeat = parseFloat(seatPriceInput.value) || 0;
         const selectedSeats = new Set();
 
-        seats.forEach(seat => {
-            seat.addEventListener('click', function() {
-                const seatId = this.dataset.seatId;
-                const seatNumber = this.dataset.seatNumber;
-                
-                if (!seatId) return;
+        seatInputs.forEach(input => {
+            const label = input.nextElementSibling;
+            const seatId = input.dataset.seatId;
+            const seatNumber = input.dataset.seatNumber;
+            const seatLi = input.closest('.seat');
 
-                if (this.classList.contains('selected')) {
-                    this.classList.remove('selected');
+            if (!seatLi || !seatId) return;
+
+            const handleClick = (e) => {
+                e.preventDefault();
+                if (input.disabled) return;
+
+                if (seatLi.classList.contains('selected')) {
+                    seatLi.classList.remove('selected');
                     selectedSeats.delete(seatId);
                 } else {
-                    this.classList.add('selected');
+                    seatLi.classList.add('selected');
                     selectedSeats.add(seatId);
                 }
+                updateSummary();
+            };
 
-                updateSummaryDisplay();
-            });
+            input.addEventListener('click', handleClick);
+            if (label) label.addEventListener('click', handleClick);
         });
 
-        function updateSummaryDisplay() {
+        function updateSummary() {
             const count = selectedSeats.size;
             const totalPrice = count * basePricePerSeat;
 
-            if (seatIdsInput) {
-                seatIdsInput.value = Array.from(selectedSeats).join(',');
+            seatIdsInput.value = Array.from(selectedSeats).join(',');
+
+            if (selectedCountDisplay) {
+                selectedCountDisplay.textContent = count;
             }
 
             if (selectedSeatsDisplay) {
@@ -275,8 +284,8 @@
                     selectedSeatsDisplay.textContent = 'Chưa chọn ghế';
                 } else {
                     const seatNumbers = Array.from(selectedSeats).map(id => {
-                        const seat = document.querySelector(`#seat-modal-body .seat[data-seat-id="${id}"]`);
-                        return seat ? seat.dataset.seatNumber : id;
+                        const el = document.querySelector(`#seat-modal-body input[data-seat-id="${id}"]`);
+                        return el ? el.dataset.seatNumber : id;
                     });
                     selectedSeatsDisplay.textContent = seatNumbers.join(', ');
                 }
@@ -287,96 +296,111 @@
             }
         }
 
-        // Initial update
-        updateSummaryDisplay();
+        updateSummary();
+    }
+
+    function initializeBootstrapTabs() {
+        const tabList = document.querySelector('#seat-modal-body .nav-pills');
+        if (!tabList) return;
+
+        tabList.querySelectorAll('.nav-link').forEach(tabEl => {
+            const newTab = new bootstrap.Tab(tabEl);
+            tabEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                newTab.show();
+            });
+        });
+
+        const activeTab = tabList.querySelector('.nav-link.active');
+        if (!activeTab) {
+            const firstTab = tabList.querySelector('.nav-link');
+            if (firstTab) {
+                firstTab.classList.add('active');
+                const targetId = firstTab.getAttribute('data-bs-target');
+                const pane = document.querySelector(targetId);
+                if (pane) {
+                    pane.classList.add('show', 'active');
+                }
+            }
+        }
     }
 
     async function openSeatModal(flightId, leg){
         try {
-            // Show loading
             const body = document.getElementById('seat-modal-body');
-            body.innerHTML = '<div class="text-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3">Đang tải thông tin ghế...</p></div>';
+            body.innerHTML = '<div class="text-center p-5"><div class="spinner-border" role="status"></div><p class="mt-3">Đang tải thông tin ghế...</p></div>';
 
             await ensureBootstrapLoaded();
             
             currentLeg = leg;
             currentFlightId = flightId;
 
-            // Fetch seat data
             const resp = await fetch(`/flights/${flightId}/seats`, { 
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
             });
 
-            if (!resp.ok) {
-                throw new Error(`HTTP error! status: ${resp.status}`);
-            }
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
             const html = await resp.text();
-            
-            // Parse HTML safely
             const cache = document.getElementById('seat-modal-cache');
             cache.innerHTML = html;
 
-            // Extract components
-            const plane = cache.querySelector('.plane');
+            const coachTabs = cache.querySelector('.coach-tabs');
+            const tabContent = cache.querySelector('.tab-content');
             const summary = cache.querySelector('.summary');
             const priceInput = cache.querySelector('#seat-price');
             const flightHidden = cache.querySelector('input[name="flightId"]');
             const seatIdsHidden = cache.querySelector('#seat-ids');
 
-            if (!plane) {
-                throw new Error('Không tìm thấy thông tin ghế ngồi');
+            if (!coachTabs || !tabContent) {
+                throw new Error('Không tìm thấy thông tin toa/ghế');
             }
 
-            // Build modal content
             const wrapper = document.createElement('div');
             wrapper.className = 'row m-0';
-            
-            const left = document.createElement('div');
-            left.className = 'col-xl-6 col-lg-12 p-3';
-            
-            const right = document.createElement('div');
-            right.className = 'col-xl-6 col-lg-12 p-3';
 
-            if (plane) left.appendChild(plane.cloneNode(true));
-            
+            const leftCol = document.createElement('div');
+            leftCol.className = 'col-xl-6 col-lg-12 p-3';
+
+            const rightCol = document.createElement('div');
+            rightCol.className = 'col-xl-6 col-lg-12 p-3';
+
+            if (coachTabs) leftCol.appendChild(coachTabs.cloneNode(true));
+            if (tabContent) leftCol.appendChild(tabContent.cloneNode(true));
+
             if (summary) {
                 const summaryClone = summary.cloneNode(true);
-                // Remove embedded form/button
-                const embeddedForm = summaryClone.querySelector('form[action="/pay"]');
-                if (embeddedForm) embeddedForm.remove();
-                right.appendChild(summaryClone);
+                const payForm = summaryClone.querySelector('form[action="/pay"]');
+                if (payForm) payForm.remove();
+                rightCol.appendChild(summaryClone);
             }
 
-            // Add hidden inputs
-            if (priceInput) right.appendChild(priceInput.cloneNode(true));
-            if (flightHidden) right.appendChild(flightHidden.cloneNode(true));
-            if (seatIdsHidden) right.appendChild(seatIdsHidden.cloneNode(true));
+            if (priceInput) rightCol.appendChild(priceInput.cloneNode(true));
+            if (flightHidden) rightCol.appendChild(flightHidden.cloneNode(true));
+            if (seatIdsHidden) rightCol.appendChild(seatIdsHidden.cloneNode(true));
 
             body.innerHTML = '';
-            wrapper.appendChild(left);
-            wrapper.appendChild(right);
+            wrapper.appendChild(leftCol);
+            wrapper.appendChild(rightCol);
             body.appendChild(wrapper);
 
-            // Set modal title and button text
-            const meta = document.getElementById('search-meta');
-            const isRT = meta && meta.dataset.tripType === 'roundtrip';
             const title = document.getElementById('seat-modal-title');
             const confirmBtn = document.getElementById('confirm-seat-selection');
-            
+            const meta = document.getElementById('search-meta');
+            const isRT = meta && meta.dataset.tripType === 'roundtrip';
+
             if (title) {
                 title.textContent = leg === 'return' ? 'Chọn ghế - Chiều về' : 'Chọn ghế - Chiều đi';
             }
-            
             if (confirmBtn) {
-                confirmBtn.textContent = (isRT && leg === 'outbound') ? 'Chọn chuyến tàu về' : 'Tiến hành thanh toán';
+                confirmBtn.textContent = (isRT && leg === 'outbound') ? 'Chọn chuyến về' : 'Tiến hành thanh toán';
             }
 
-            // Initialize seat selection after DOM is ready
+            initializeBootstrapTabs();
+
             initializeSeatSelection();
 
-            // Show modal
             ensureModal().show();
 
         } catch (error) {
@@ -388,12 +412,12 @@
                     text: 'Không thể tải thông tin ghế. Vui lòng thử lại.'
                 });
             } else {
-                alert('Không thể tải thông tin ghế. Vui lòng thử lại.');
+                alert('Lỗi tải dữ liệu ghế.');
             }
         }
     }
 
-    // Event delegation for open seat modal buttons
+    // MỞ MODAL KHI NHẤN NÚT "Chọn"
     document.addEventListener('click', function(e){
         const btn = e.target.closest('.open-seat-modal');
         if (!btn) return;
@@ -403,39 +427,31 @@
         const flightId = btn.getAttribute('data-flight-id');
         const leg = btn.getAttribute('data-leg') || 'outbound';
         
-        if (!flightId) {
-            console.error('Flight ID not found');
-            return;
-        }
+        if (!flightId) return;
         
         openSeatModal(flightId, leg);
     });
 
-    // Confirm seat selection
+    // XÁC NHẬN CHỌN GHẾ
     document.getElementById('confirm-seat-selection').addEventListener('click', function(){
         const seatIdsInput = document.getElementById('seat-ids');
-        const seatPriceInput = document.getElementById('seat-price');
         
         if (!seatIdsInput || !seatIdsInput.value) {
-            if (window.Swal) {
-                Swal.fire({ 
-                    icon: 'warning', 
-                    title: 'Chưa chọn ghế',
-                    text: 'Vui lòng chọn ít nhất 1 ghế' 
-                });
-            } else {
-                alert('Vui lòng chọn ít nhất 1 ghế');
-            }
+            Swal.fire({ 
+                icon: 'warning', 
+                title: 'Chưa chọn ghế',
+                text: 'Vui lòng chọn ít nhất 1 ghế' 
+            });
             return;
         }
         
         const seatIds = seatIdsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-        const seatPrice = seatPriceInput ? parseFloat(seatPriceInput.value) : 0;
+        const seatPrice = document.getElementById('seat-price')?.value || 0;
 
         selection[currentLeg] = { 
             flightId: currentFlightId, 
             seatIds: seatIds, 
-            seatPrice: seatPrice 
+            seatPrice: parseFloat(seatPrice)
         };
         
         ensureModal().hide();
@@ -444,23 +460,15 @@
         const isRT = meta && meta.dataset.tripType === 'roundtrip';
         
         if (!isRT) {
-            // One-way trip - submit directly
             submitPayment('outbound');
         } else if (currentLeg === 'outbound') {
-            // Round trip - outbound selected, prompt for return
-            if (window.Swal) {
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'Đã lưu ghế chiều đi',
-                    text: 'Vui lòng chọn ghế chiều về.' 
-                });
-            }
-            const returnSection = document.getElementById('return-section');
-            if (returnSection) {
-                returnSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Đã lưu ghế chiều đi',
+                text: 'Vui lòng chọn ghế chiều về.' 
+            });
+            document.getElementById('return-section')?.scrollIntoView({ behavior: 'smooth' });
         } else if (currentLeg === 'return' && selection.outbound && selection.return) {
-            // Both legs selected - submit payment with both legs
             submitPayment('both');
         }
     });
@@ -474,26 +482,28 @@
             const out = selection.outbound;
             const ret = selection.return;
             if (!out || !ret) return;
+
             const of = document.createElement('input'); of.type = 'hidden'; of.name = 'outboundFlightId'; of.value = out.flightId; form.appendChild(of);
             out.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'outboundSeatIds'; i.value = id; form.appendChild(i); });
-            const rf = document.createElement('input'); rf.type = 'hidden'; rf.name = 'returnFlightId'; rf.value = ret.flightId; form.appendChild(rf);
+            const rf = document.createElement('input'); rf.type = 'hidden'; rf.name = 'returnFlightId'; rf.value = ret.flightId; form.appendOfChild(rf);
             ret.seatIds.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'returnSeatIds'; i.value = id; form.appendChild(i); });
         } else {
             const data = selection[leg];
             if (!data) return;
             const flightInput = document.createElement('input');
-            flightInput.type = 'hidden';
-            flightInput.name = 'flightId';
-            flightInput.value = data.flightId;
+            flightInput.type = 'hidden'; flightInput.name = 'flightId'; flightInput.value = data.flightId;
             form.appendChild(flightInput);
-            data.seatIds.forEach(id => { const seatInput = document.createElement('input'); seatInput.type = 'hidden'; seatInput.name = 'seatIds'; seatInput.value = id; form.appendChild(seatInput); });
+            data.seatIds.forEach(id => {
+                const seatInput = document.createElement('input');
+                seatInput.type = 'hidden'; seatInput.name = 'seatIds'; seatInput.value = id;
+                form.appendChild(seatInput);
+            });
         }
 
         document.body.appendChild(form);
         form.submit();
     }
 })();
-
 </script>
 </body>
 </html>

@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public interface ISeatRepository extends JpaRepository<Seat, Integer> {
 
-    @Query("SELECT s FROM Seat s WHERE s.flight.flightId = :flightId")
+    @Query("SELECT s FROM Seat s WHERE s.flight.flightId = :flightId ORDER BY s.coachNumber, s.seatNumber")
     List<Seat> findSeatsByFlightId(@Param("flightId") Integer flightId);
 
     @Modifying

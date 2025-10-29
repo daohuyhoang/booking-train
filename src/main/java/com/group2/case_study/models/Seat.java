@@ -29,4 +29,7 @@ public class Seat {
 
     @Column(nullable = true)
     private LocalDateTime holdExpiration;
+
+    @Column(nullable = false)
+    private Integer coachNumber;
 }
