@@ -6,52 +6,328 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh toán</title>
     <style>
-        .info {
-            font-weight: bold;
-            font-size: 20px;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0d47a1 0%, #42a5f5 100%);
+            min-height: 100vh;
+            color: #333;
         }
+
         .main-container {
             margin-top: 100px;
+            padding-bottom: 50px;
+        }
+
+        .payment-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: none;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-body {
+            padding: 40px !important;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 25px;
+        }
+
+        .vnpay-logo {
+            width: 180px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .card-title {
+            color: #0d47a1;
+            font-weight: 700;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Customer Info Cards */
+        .customer-fieldset {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #0d47a1;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .customer-fieldset:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.15);
+        }
+
+        .customer-fieldset legend {
+            font-weight: 700;
+            font-size: 20px;
+            color: #0d47a1;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 2px solid #0d47a1;
+            width: auto;
+            margin-bottom: 15px;
+            float: none;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-value {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        /* Price Section */
+        .price-section {
+            background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(13, 71, 161, 0.3);
+        }
+
+        .price-label {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .price-amount {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            background-color: #ffcc00;
+            border: none;
+            padding: 15px 50px;
+            font-weight: 700;
+            font-size: 18px;
+            border-radius: 30px;
+            color: #333;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:hover {
+            background-color: #ffd633;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.6);
+        }
+
+        .btn-submit:active {
+            transform: translateY(-1px);
+        }
+
+        /* Icons */
+        .icon {
+            color: #0d47a1;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                margin-top: 80px;
+            }
+
+            .card-body {
+                padding: 25px !important;
+            }
+
+            .card-title {
+                font-size: 24px;
+            }
+
+            .customer-fieldset {
+                padding: 20px;
+            }
+
+            .customer-fieldset legend {
+                font-size: 18px;
+            }
+
+            .price-amount {
+                font-size: 28px;
+            }
+
+            .btn-submit {
+                padding: 12px 40px;
+                font-size: 16px;
+                width: 100%;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .info-label {
+                min-width: auto;
+            }
+        }
+
+        /* Loading Animation */
+        .btn-submit.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-submit.loading::after {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 10px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spinner 0.6s linear infinite;
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
     <th:block th:replace="~{/common/layout :: head}"></th:block>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 <th:block th:replace="~{/common/layout :: navbar}"></th:block>
 
 <div class="container main-container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body p-5">
-                    <img th:src="@{/images/vnpay-logo.png}" style="width: 200px">
-                    <h2 class="card-title">Xác nhận thông tin</h2>
-                    <form th:action="@{/vnp/submitOrder/{flightId}(flightId=${flightId})}" method="post">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card payment-card">
+                <div class="card-body">
+                    <div class="payment-header">
+                        <img th:src="@{/images/vnpay-logo.png}" class="vnpay-logo" alt="VNPay Logo">
+                        <h2 class="card-title">Xác nhận thông tin thanh toán</h2>
+                        <p class="subtitle">Vui lòng kiểm tra thông tin trước khi thanh toán</p>
+                    </div>
+
+                    <form th:action="@{/vnp/submitOrder/{flightId}(flightId=${flightId})}" method="post" id="paymentForm">
+                        <!-- Customer Information -->
                         <div th:each="info,status:${customers}">
-                            <fieldset>
-                                <legend class="info">Khách hàng <span th:text="${status.count}"></span></legend>
-                                <p>Họ tên : <span th:text="*{info.getName()}"></span></p>
-                                <p>Giới tính : <span th:text="*{info.getGender()}"></span></p>
-                                <p>Quốc gia : <span th:text="*{info.getCountry()}"></span></p>
-                                <p>Số ghế : <span th:text="*{info.getNumberOfSeats()}"></span></p>
+                            <fieldset class="customer-fieldset">
+                                <legend>
+                                    <i class="fas fa-user icon"></i>
+                                    Khách hàng <span th:text="*{info.getName()}"></span>
+                                </legend>
+                                
+                                <div class="info-row">
+                                    <div class="info-label">
+                                        <i class="fas fa-venus-mars icon"></i>
+                                        Giới tính:
+                                    </div>
+                                    <div class="info-value" th:text="*{info.getGender()}"></div>
+                                </div>
+
+                                <div class="info-row">
+                                    <div class="info-label">
+                                        <i class="fas fa-globe icon"></i>
+                                        Quốc gia:
+                                    </div>
+                                    <div class="info-value" th:text="*{info.getCountry()}"></div>
+                                </div>
+
+                                <div class="info-row">
+                                    <div class="info-label">
+                                        <i class="fas fa-chair icon"></i>
+                                        Số ghế:
+                                    </div>
+                                    <div class="info-value" th:text="*{info.getNumberOfSeats()}"></div>
+                                </div>
                             </fieldset>
                         </div>
-                        <div class="form-group">
-                            <h4 >Số tiền cần thanh toán: <span th:text="${#numbers.formatDecimal(ticketPrice, 0, 'COMMA', 0, 'POINT')}"></span> VND</h4>
+
+                        <!-- Price Section -->
+                        <div class="price-section">
+                            <div class="price-label">
+                                <i class="fas fa-money-bill-wave"></i> Tổng tiền thanh toán:
+                            </div>
+                            <div class="price-amount">
+                                <span th:text="${#numbers.formatDecimal(ticketPrice, 0, 'COMMA', 0, 'POINT')}"></span> ₫
+                            </div>
                             <input type="hidden" name="amount" th:value="${#numbers.formatDecimal(ticketPrice, 0,0)}"/>
                             <input type="hidden" name="orderInfo" th:value="Order"/>
                         </div>
-                        <div class="d-flex justify-content-center mt-4">
-                            <button type="submit" class="btn btn-primary">Xác nhận thanh toán</button>
-                        </div>
 
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-submit" id="submitBtn">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Xác nhận thanh toán
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Add loading animation on form submit
+    document.getElementById('paymentForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+    });
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <th:block th:replace="~{/common/layout :: footer}"></th:block>

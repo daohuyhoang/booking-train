@@ -49,10 +49,10 @@ public class VNPController {
 
     @PostMapping("")
     public String home(@RequestParam("ticketPrice") double ticketPrice,
-                       @RequestParam("flightId") int flightId,
-                       @ModelAttribute BookingWrapper bookingWrapper,
-                       HttpSession session,
-                       Model model) {
+                    @RequestParam("flightId") int flightId,
+                    @ModelAttribute BookingWrapper bookingWrapper,
+                    HttpSession session,
+                    Model model) {
         if (session.getAttribute(PAYMENT_IDENTIFIER) != null) {
             return "pay/error";
         }
@@ -68,12 +68,11 @@ public class VNPController {
         }
         
         session.setAttribute("bookingWrappers", customersNew);
-        double totalPrice = customersNew.size() * ticketPrice;
-        model.addAttribute("ticketPrice", totalPrice);
+        
+        model.addAttribute("ticketPrice", ticketPrice);
         model.addAttribute("flightId", flightId);
         model.addAttribute("customers", customersNew);
 
-        // Gán định danh thanh toán vào phiên
         session.setAttribute(PAYMENT_IDENTIFIER, generateRandomCode());
 
         return "vnp/index";
@@ -113,13 +112,14 @@ public class VNPController {
         String orderInfo = request.getParameter("vnp_OrderInfo");
         String paymentTime = request.getParameter("vnp_PayDate");
         String transactionId = request.getParameter("vnp_TransactionNo");
-        String totalPrice = request.getParameter("vnp_Amount");
+        String vnpAmount = request.getParameter("vnp_Amount");
+        long totalPriceLong = Long.parseLong(vnpAmount);
         String responseCode = request.getParameter("vnp_ResponseCode");
         String bankCode = request.getParameter("vnp_BankCode");
         List<Integer> seatIds = (List<Integer>) session.getAttribute("seats");
 
         model.addAttribute("orderId", orderInfo);
-        model.addAttribute("totalPrice", totalPrice);
+        model.addAttribute("totalPrice", totalPriceLong);
         model.addAttribute("paymentTime", paymentTime);
         model.addAttribute("transactionId", transactionId);
         model.addAttribute("responseCode", responseCode);

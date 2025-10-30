@@ -257,7 +257,8 @@
         const seatIdsInput = document.getElementById('seat-ids');
         const selectedSeatsDisplay = document.querySelector('#seat-modal-body .selected-seats');
         const totalPriceDisplay = document.querySelector('#seat-modal-body .total-price');
-        const selectedCountDisplay = document.querySelector('#seat-modal-body #selected-count');
+        const selectedCountDisplay = document.querySelector('#seat-modal-body #selected-count');   
+        const classTypeDisplay = document.querySelector('#seat-modal-body #seat-class-type');
 
         if (!seatIdsInput) {
             console.error('Missing required elements for seat selection');
@@ -298,14 +299,20 @@
 
             const seatNumbers = [];
             const seatIds = [];
+            const classTypes = new Set();
 
             selectedSeats.forEach(id => {
                 const el = document.querySelector(`#seat-modal-body input[data-seat-id="${id}"]`);
                 if (!el) return;
                 const p = parseFloat(el.dataset.seatPrice) || 0;
+                const classType = el.dataset.classType || '';
                 totalPrice += p;
                 seatNumbers.push(el.dataset.seatNumber || id);
                 seatIds.push(id);
+
+                if (classType) {
+                    classTypes.add(classType);
+                }
             });
 
             seatIdsInput.value = seatIds.join(',');
@@ -313,6 +320,10 @@
             if (selectedCountDisplay) selectedCountDisplay.textContent = count;
             if (selectedSeatsDisplay) selectedSeatsDisplay.textContent = (seatNumbers.length === 0) ? 'Chưa chọn ghế' : seatNumbers.join(', ');
             if (totalPriceDisplay) totalPriceDisplay.textContent = totalPrice.toLocaleString('vi-VN') + ' VND';
+            if (classTypeDisplay) {
+                const classTypeText = classTypes.size > 0 ? Array.from(classTypes).join(', ') : '--';
+                classTypeDisplay.textContent = classTypeText;
+            }
         }
 
         updateSummary();

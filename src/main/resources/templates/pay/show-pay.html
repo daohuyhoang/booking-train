@@ -19,8 +19,8 @@
                 <fieldset class="title" th:object="${flight}">
                     <legend class="mb-3">Thông Tin Đặt Chỗ</legend>
                     <input type="hidden" name="flightId" th:value="*{flightId}">
-                    <!-- keep ticketPrice hidden for VNP (per-passenger) but don't display it -->
-                    <input type="hidden" name="ticketPrice" th:value="${perPassengerPrice != null ? perPassengerPrice : flight.price}">
+                    <!-- send total ticket price (grand total) to VNP, not per-passenger -->
+                    <input type="hidden" name="ticketPrice" th:value="${grandTotal != null ? grandTotal : (perPassengerPrice != null ? perPassengerPrice : flight.price)}">
                     <p>Số Chuyến: <span th:text="*{flightNumber}"></span></p>
                     <p>Khởi Hành: <span th:text="${#temporals.format(flight.departureTime, 'HH:mm dd-MM-yyyy')}"></span></p>
                     <p>Điểm Đi: <span th:text="*{departureAirport.getCity()}"></span></p>
@@ -44,7 +44,7 @@
                             <div class="seats-list">
                                 <p>Ghế đã chọn:</p>
                                 <ul>
-                                    <li th:each="seat : ${outboundSeats}" th:text="${seat.seatNumber}"></li>
+                                    <li th:each="seat : ${outboundSeats}" th:text="${seat.classType} + ' - Ghế ' + ${seat.seatNumber}"></li>
                                 </ul>
                             </div>
                         </fieldset>
@@ -61,7 +61,7 @@
                             <div class="seats-list">
                                 <p>Ghế đã chọn:</p>
                                 <ul>
-                                    <li th:each="seat : ${returnSeats}" th:text="${seat.seatNumber}"></li>
+                                    <li th:each="seat : ${returnSeats}" th:text="${seat.classType} + ' - Ghế ' + ${seat.seatNumber}"></li>
                                 </ul>
                             </div>
                         </fieldset>
@@ -75,7 +75,7 @@
                     <fieldset class="col-md-12" th:each="seat, status : ${outboundSeats}"
                               th:classappend="${outboundSeats.size() > 1 ? 'col-lg-6' : 'col-lg-12'}"
                               th:object="${bookingWrapper}">
-                              <legend th:text="'Khách hàng ghế ' + ${seat.seatNumber} + ' (Chiều đi)'"></legend>
+                        <legend th:text="${seat.classType} + ' - Ghế ' + ${seat.seatNumber} + ' (Chiều đi)'"></legend>
 
                         <input class="mb-3 form-control" type="hidden"
                                th:name="'customers[' + ${status.index} + '].numberOfSeats'"
@@ -102,13 +102,14 @@
                                th:name="'customers[' + ${status.index} + '].country'" required>
 
                         <p>Số ghế (chiều đi): <span class="title" th:text="${seat.seatNumber}"></span></p>
+                        <p>Loại ghế: <span class="title" th:text="${seat.classType}"></span></p>
                     </fieldset>
                 </div>
                 <div class="row mt-2">
                     <fieldset class="col-md-12" th:each="seat, status : ${returnSeats}"
                               th:classappend="${returnSeats.size() > 1 ? 'col-lg-6' : 'col-lg-12'}"
                               th:object="${bookingWrapper}">
-                              <legend th:text="'Khách hàng ghế ' + ${seat.seatNumber} + ' (Chiều về)'"></legend>
+                        <legend th:text="${seat.classType} + ' - Ghế ' + ${seat.seatNumber} + ' (Chiều về)'"></legend>
 
                         <input class="mb-3 form-control" type="hidden"
                                th:name="${'customers[' + (status.index + #lists.size(outboundSeats)) + '].numberOfSeats'}"
@@ -139,19 +140,23 @@
                                th:name="${'customers[' + (status.index + #lists.size(outboundSeats)) + '].country'}" required>
 
                         <p>Số ghế (chiều về): <span class="title" th:text="${seat.seatNumber}"></span></p>
+                        <p>Loại ghế: <span class="title" th:text="${seat.classType}"></span></p>
                     </fieldset>
                 </div>
-                <!-- Hidden fields for VNP expects ticketPrice and flightId; use return flight id for reference and perPassengerPrice -->
-                <input type="hidden" name="ticketPrice" th:value="${perPassengerPrice}">
+                <!-- Hidden fields for VNP expects ticketPrice and flightId; send grand total for the whole booking -->
+                <input type="hidden" name="ticketPrice" th:value="${grandTotal}">
                 <input type="hidden" name="flightId" th:value="${returnFlight.flightId}">
             </div>
 
             <!-- Thông tin khách hàng -->
             <div class="row" th:if="${tripType} == null">
-                <fieldset class="col-md-12" th:each="seat, status : ${seats}" th:classappend="${seats.size() > 1 ? 'col-lg-6' : 'col-lg-12'}" th:object="${bookingWrapper}">
-                    <legend>Thông Tin Khách Hàng <span th:text="${status.count}"></span></legend>
+                <fieldset class="col-md-12" th:each="seat, status : ${seats}" 
+                          th:classappend="${seats.size() > 1 ? 'col-lg-6' : 'col-lg-12'}" 
+                          th:object="${bookingWrapper}">
+                    <legend th:text="${seat.classType} + ' - Ghế ' + ${seat.seatNumber}"></legend>
 
-                    <input class="mb-3 form-control" type="hidden" th:name="'customers[' + ${status.count} + '].numberOfSeats'"
+                    <input class="mb-3 form-control" type="hidden" 
+                           th:name="'customers[' + ${status.count} + '].numberOfSeats'"
                            th:value="${seat.seatNumber}"/>
 
                     <label th:for="'fullName_' + ${status.count}">Họ Tên:</label>
@@ -175,6 +180,7 @@
                            th:name="'customers[' + ${status.count} + '].country'" required>
 
                     <p>Số ghế: <span class="title" th:text="${seat.seatNumber}"></span></p>
+                    <p>Loại ghế: <span class="title" th:text="${seat.classType}"></span></p>
                 </fieldset>
             </div>
 
