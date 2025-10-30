@@ -14,19 +14,21 @@
     <!-- ================= TOA TÀU (Full Width) ================= -->
     <div class="row">
         <div class="col-xl-12">
-            <div class="coach-tabs mb-3">
+            <div class="coach-tabs mt-3">
                 <ul class="nav nav-pills justify-content-center" role="tablist">
                     <li class="nav-item" th:each="coach, iterStat : ${seatsByCoach}" role="presentation">
                         <button class="nav-link"
-                                th:classappend="${iterStat.first} ? 'active' : ''"
+                                th:classappend="${iterStat.first} ? 'active locomotive' : ''"
                                 th:id="'coach-tab-' + ${coach.key}"
                                 th:data-coach="${coach.key}"
                                 data-bs-toggle="pill"
                                 th:data-bs-target="'#coach-' + ${coach.key}"
                                 type="button" role="tab">
-                            <i class="fas fa-train me-2"></i>
-                            Toa <span th:text="${coach.key}"></span>
+                            <!-- Đèn tín hiệu -->
+                            <span class="coach-light"></span>
                         </button>
+                        <!-- Text bên ngoài button -->
+                        <span class="coach-label">Toa <span th:text="${coach.key}"></span></span>
                     </li>
                 </ul>
             </div>
@@ -53,14 +55,15 @@
                         <div class="seat-grid">
                             <div th:each="seatRow, rowStat : ${coach.value}">
                                 <div th:each="seat : ${seatRow}" class="seat">
-                                    <input th:attr="disabled = ${seat.availabilityStatus == 'AVAILABLE' ? null : 'disabled'}"
-                                           th:classappend="${seat.availabilityStatus == 'AVAILABLE' ? 'available' : 'unavailable'}"
-                                           type="checkbox"
-                                           th:id="${seat.seatNumber}"
-                                           th:data-seat-id="${seat.seatId}"
-                                           th:data-seat-number="${seat.seatNumber}"
-                                           th:data-coach="${seat.coachNumber}"
-                                           onclick="toggleSeat(this)"/>
+                     <input th:attr="disabled = ${seat.availabilityStatus == 'AVAILABLE' ? null : 'disabled'}"
+                         th:classappend="${seat.availabilityStatus == 'AVAILABLE' ? 'available' : 'unavailable'}"
+                         type="checkbox"
+                         th:id="${seat.seatNumber}"
+                         th:data-seat-id="${seat.seatId}"
+                         th:data-seat-number="${seat.seatNumber}"
+                         th:data-coach="${seat.coachNumber}"
+                         th:data-seat-price="${seat.price}"
+                         onclick="toggleSeat(this)"/>
                                     <label th:for="${seat.seatNumber}" th:text="${seat.seatNumber}"></label>
                                 </div>
                             </div>

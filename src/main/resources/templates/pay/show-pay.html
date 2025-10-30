@@ -19,12 +19,13 @@
                 <fieldset class="title" th:object="${flight}">
                     <legend class="mb-3">Thông Tin Đặt Chỗ</legend>
                     <input type="hidden" name="flightId" th:value="*{flightId}">
-                    <input type="hidden" name="ticketPrice" th:value="*{price}">
+                    <!-- keep ticketPrice hidden for VNP (per-passenger) but don't display it -->
+                    <input type="hidden" name="ticketPrice" th:value="${perPassengerPrice != null ? perPassengerPrice : flight.price}">
                     <p>Số Chuyến: <span th:text="*{flightNumber}"></span></p>
                     <p>Khởi Hành: <span th:text="${#temporals.format(flight.departureTime, 'HH:mm dd-MM-yyyy')}"></span></p>
                     <p>Điểm Đi: <span th:text="*{departureAirport.getCity()}"></span></p>
                     <p>Điểm Đến: <span th:text="*{arrivalAirport.getCity()}"></span></p>
-                    <p>Giá vé: <span th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></span></p>
+                    <p>Tổng tiền: <span th:text="${#numbers.formatDecimal(grandTotal, 0, 'COMMA', 0, 'POINT')} + '₫'"></span></p>
                 </fieldset>
             </div>
 
@@ -39,7 +40,7 @@
                             <p>Khởi Hành: <span th:text="${#temporals.format(outboundFlight.departureTime, 'HH:mm dd-MM-yyyy')}"></span></p>
                             <p>Điểm Đi: <span th:text="*{departureAirport.getCity()}"></span></p>
                             <p>Điểm Đến: <span th:text="*{arrivalAirport.getCity()}"></span></p>
-                            <p>Giá vé: <span th:text="${#numbers.formatDecimal(outboundFlight.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></span></p>
+                            <p>Tổng giá vé lượt đi: <span th:text="${outboundTotal != null ? #numbers.formatDecimal(outboundTotal, 0, 'COMMA', 0, 'POINT') + '₫' : (#numbers.formatDecimal(outboundFlight.price * (outboundSeats != null ? outboundSeats.size() : 1), 0, 'COMMA', 0, 'POINT') + '₫')}"></span></p>
                             <div class="seats-list">
                                 <p>Ghế đã chọn:</p>
                                 <ul>
@@ -56,7 +57,7 @@
                             <p>Khởi Hành: <span th:text="${#temporals.format(returnFlight.departureTime, 'HH:mm dd-MM-yyyy')}"></span></p>
                             <p>Điểm Đi: <span th:text="*{departureAirport.getCity()}"></span></p>
                             <p>Điểm Đến: <span th:text="*{arrivalAirport.getCity()}"></span></p>
-                            <p>Giá vé: <span th:text="${#numbers.formatDecimal(returnFlight.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></span></p>
+                            <p>Tổng giá vé lượt về: <span th:text="${returnTotal != null ? #numbers.formatDecimal(returnTotal, 0, 'COMMA', 0, 'POINT') + '₫' : (#numbers.formatDecimal(returnFlight.price * (returnSeats != null ? returnSeats.size() : 1), 0, 'COMMA', 0, 'POINT') + '₫')}"></span></p>
                             <div class="seats-list">
                                 <p>Ghế đã chọn:</p>
                                 <ul>

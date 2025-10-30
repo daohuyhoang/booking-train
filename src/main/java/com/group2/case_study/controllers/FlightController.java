@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class FlightController {
@@ -32,6 +33,9 @@ public class FlightController {
     private IFlightService flightService;
 
     @Autowired
+    private com.group2.case_study.services.ISeatService seatService;
+
+    @Autowired
     private IBookingService bookingService;
 
     @GetMapping
@@ -39,7 +43,14 @@ public class FlightController {
         List<Airport> airports = flightService.getDistinctDepartureAirportsWithFutureFlights();
         List<Flight> flights = flightService.findAllFlightsByCurrentDateTime();
         model.addAttribute("airports", airports);
+        // compute min seat price per flight for display ("Từ ...")
+        Map<Integer, Double> minPrices = new java.util.HashMap<>();
+        for (Flight f : flights) {
+            Double min = seatService.findMinPriceByFlightId(f.getFlightId());
+            minPrices.put(f.getFlightId(), min);
+        }
         model.addAttribute("flights", flights);
+        model.addAttribute("minPrices", minPrices);
         if (principal != null) {
             String username = principal.getName();
             model.addAttribute("username", username);
@@ -97,7 +108,23 @@ public class FlightController {
             } else {
                 model.addAttribute("tripType", "oneway");
             }
+            // compute min seat price for each flight in results (including returnFlights if present)
+            Map<Integer, Double> minPrices = new java.util.HashMap<>();
+            for (Flight f : flights) {
+                Double min = seatService.findMinPriceByFlightId(f.getFlightId());
+                minPrices.put(f.getFlightId(), min);
+            }
+            if (returnFlights != null) {
+                for (Flight rf : returnFlights) {
+                    // avoid recomputing if already present
+                    if (!minPrices.containsKey(rf.getFlightId())) {
+                        Double min = seatService.findMinPriceByFlightId(rf.getFlightId());
+                        minPrices.put(rf.getFlightId(), min);
+                    }
+                }
+            }
             model.addAttribute("flights", flights);
+            model.addAttribute("minPrices", minPrices);
             model.addAttribute("departureAirport", departureAirport);
             model.addAttribute("arrivalAirport", arrivalAirport);
             model.addAttribute("departureDate", departureDate);

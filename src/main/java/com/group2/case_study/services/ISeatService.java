@@ -18,4 +18,6 @@ public interface ISeatService {
     long countAvailableSeatsByFlightId(Integer flightId);
     Seat findById(Integer seatId);
     List<Seat> findAllSeat(int flightId, int id);
+
+    Double findMinPriceByFlightId(Integer flightId);
 }

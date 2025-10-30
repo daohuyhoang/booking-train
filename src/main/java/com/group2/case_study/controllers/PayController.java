@@ -53,6 +53,17 @@ public class PayController {
             session.setAttribute("seats", seatIds);
             model.addAttribute("flight", flight);
             model.addAttribute("seats", seats);
+            // compute total based on selected seat prices
+            long grandTotal = 0L;
+            for (Integer sId : seatIds) {
+                Seat s = seatService.findById(sId);
+                if (s != null && s.getPrice() != null) {
+                    grandTotal += Math.round(s.getPrice());
+                }
+            }
+            model.addAttribute("grandTotal", grandTotal);
+            double perPassengerPrice = seatIds.isEmpty() ? 0 : ((double) grandTotal) / seatIds.size();
+            model.addAttribute("perPassengerPrice", perPassengerPrice);
             return "pay/show-pay";
         }
 
@@ -79,13 +90,31 @@ public class PayController {
             model.addAttribute("returnSeats", returnSeats);
             model.addAttribute("tripType", "roundtrip");
 
-            long outboundTotal = Math.round(outboundSeatIds.size() * outboundFlight.getPrice());
-            long returnTotal = Math.round(returnSeatIds.size() * returnFlight.getPrice());
+            long outboundTotal = 0L;
+            for (Seat s : outboundSeats) {
+                if (outboundSeatIds.contains(s.getSeatId()) && s.getPrice() != null) {
+                    outboundTotal += Math.round(s.getPrice());
+                }
+            }
+            long returnTotal = 0L;
+            for (Seat s : returnSeats) {
+                if (returnSeatIds.contains(s.getSeatId()) && s.getPrice() != null) {
+                    returnTotal += Math.round(s.getPrice());
+                }
+            }
             long grandTotal = outboundTotal + returnTotal;
             model.addAttribute("grandTotal", grandTotal);
             
             double perPassengerPrice = (outboundSeatIds.isEmpty() ? 0 : ((double) grandTotal) / outboundSeatIds.size());
             model.addAttribute("perPassengerPrice", perPassengerPrice);
+
+            double outboundPerPassenger = (outboundSeatIds.isEmpty() ? 0 : ((double) outboundTotal) / outboundSeatIds.size());
+            double returnPerPassenger = (returnSeatIds.isEmpty() ? 0 : ((double) returnTotal) / returnSeatIds.size());
+            model.addAttribute("outboundPerPassengerPrice", outboundPerPassenger);
+            model.addAttribute("returnPerPassengerPrice", returnPerPassenger);
+            // add per-leg totals for display
+            model.addAttribute("outboundTotal", outboundTotal);
+            model.addAttribute("returnTotal", returnTotal);
             return "pay/show-pay";
         }
 

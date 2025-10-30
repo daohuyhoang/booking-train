@@ -36,6 +36,9 @@ public interface ISeatRepository extends JpaRepository<Seat, Integer> {
     @Query("SELECT COUNT(s) FROM Seat s WHERE s.flight.flightId = :flightId AND s.availabilityStatus = 'AVAILABLE'")
     long countAvailableSeatsByFlightId(Integer flightId);
 
+    @Query("SELECT MIN(s.price) FROM Seat s WHERE s.flight.flightId = :flightId")
+    Double findMinPriceByFlightId(@Param("flightId") Integer flightId);
+
     @Modifying
     @Transactional
     void deleteAllByFlight_FlightId(Integer flightId);

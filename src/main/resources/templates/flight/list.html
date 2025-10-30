@@ -72,7 +72,7 @@
                                     class="flight-number"></span></p>
                         </td>
                         <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
-                        <td th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + ' VND'"
+                        <td th:text="${minPrices[flight.flightId] != null ? ('Từ ' + #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') + ' VND') : (#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT') + ' VND')}"
                             class="price"></td>
                         <td>
                             <div class="row mt-4">
@@ -137,7 +137,7 @@
                                         class="flight-number"></span></p>
                             </td>
                             <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
-                            <td th:text="${#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')} + ' VND'"
+                            <td th:text="${minPrices[flight.flightId] != null ? ('Từ ' + #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') + ' VND') : (#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT') + ' VND')}"
                                 class="price"></td>
                             <td>
                                 <div class="row mt-4">
@@ -228,19 +228,17 @@
 
     function initializeSeatSelection() {
         const seatInputs = document.querySelectorAll('#seat-modal-body .tab-pane input[type="checkbox"]:not([disabled])');
-        
+
         const seatIdsInput = document.getElementById('seat-ids');
-        const seatPriceInput = document.getElementById('seat-price');
         const selectedSeatsDisplay = document.querySelector('#seat-modal-body .selected-seats');
         const totalPriceDisplay = document.querySelector('#seat-modal-body .total-price');
         const selectedCountDisplay = document.querySelector('#seat-modal-body #selected-count');
 
-        if (!seatIdsInput || !seatPriceInput) {
+        if (!seatIdsInput) {
             console.error('Missing required elements for seat selection');
             return;
         }
 
-        const basePricePerSeat = parseFloat(seatPriceInput.value) || 0;
         const selectedSeats = new Set();
 
         seatInputs.forEach(input => {
@@ -271,29 +269,25 @@
 
         function updateSummary() {
             const count = selectedSeats.size;
-            const totalPrice = count * basePricePerSeat;
+            let totalPrice = 0;
 
-            seatIdsInput.value = Array.from(selectedSeats).join(',');
+            const seatNumbers = [];
+            const seatIds = [];
 
-            if (selectedCountDisplay) {
-                selectedCountDisplay.textContent = count;
-            }
+            selectedSeats.forEach(id => {
+                const el = document.querySelector(`#seat-modal-body input[data-seat-id="${id}"]`);
+                if (!el) return;
+                const p = parseFloat(el.dataset.seatPrice) || 0;
+                totalPrice += p;
+                seatNumbers.push(el.dataset.seatNumber || id);
+                seatIds.push(id);
+            });
 
-            if (selectedSeatsDisplay) {
-                if (count === 0) {
-                    selectedSeatsDisplay.textContent = 'Chưa chọn ghế';
-                } else {
-                    const seatNumbers = Array.from(selectedSeats).map(id => {
-                        const el = document.querySelector(`#seat-modal-body input[data-seat-id="${id}"]`);
-                        return el ? el.dataset.seatNumber : id;
-                    });
-                    selectedSeatsDisplay.textContent = seatNumbers.join(', ');
-                }
-            }
+            seatIdsInput.value = seatIds.join(',');
 
-            if (totalPriceDisplay) {
-                totalPriceDisplay.textContent = totalPrice.toLocaleString('vi-VN') + ' VND';
-            }
+            if (selectedCountDisplay) selectedCountDisplay.textContent = count;
+            if (selectedSeatsDisplay) selectedSeatsDisplay.textContent = (seatNumbers.length === 0) ? 'Chưa chọn ghế' : seatNumbers.join(', ');
+            if (totalPriceDisplay) totalPriceDisplay.textContent = totalPrice.toLocaleString('vi-VN') + ' VND';
         }
 
         updateSummary();
@@ -370,7 +364,7 @@
 
             // Row 2: Seat grid (left) + Summary (right)
             const contentRow = document.createElement('div');
-            contentRow.className = 'row mt-3';
+            contentRow.className = 'row';
 
             const leftCol = document.createElement('div');
             leftCol.className = 'col-xl-8 col-lg-12 p-3';

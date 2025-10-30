@@ -92,4 +92,9 @@ public class SeatService implements ISeatService {
     public List<Seat> findAllSeat(int flightId, int id) {
         return seatRepository.findAllSeat(flightId, id);
     }
+
+    @Override
+    public Double findMinPriceByFlightId(Integer flightId) {
+        return seatRepository.findMinPriceByFlightId(flightId);
+    }
 }

@@ -32,4 +32,7 @@ public class Seat {
 
     @Column(nullable = false)
     private Integer coachNumber;
+
+    @Column(nullable = true)
+    private Double price;
 }

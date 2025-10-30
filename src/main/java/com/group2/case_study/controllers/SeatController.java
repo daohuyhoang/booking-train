@@ -34,9 +34,10 @@ public class SeatController {
         }
         
         if (flight != null) {
+            Double minPrice = seatService.findMinPriceByFlightId(flightId);
             model.addAttribute("seatsByCoach", seatsByCoach);
             model.addAttribute("flightId", flightId);
-            model.addAttribute("seatPrice", flight.getPrice());
+            model.addAttribute("seatPrice", minPrice != null ? minPrice : 0);
         }
         
         return "seat/seat-re";
