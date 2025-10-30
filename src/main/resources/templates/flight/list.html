@@ -51,45 +51,58 @@
                 <h3 th:if="${flights.isEmpty()}" class="text-center fw-bold text-result">Không có chuyến tàu hỏa cần
                     tìm!!</h3>
                 <div id="search-meta" th:attr="data-trip-type=${tripType}"></div>
-                <table th:unless="${flights.isEmpty()}" class="table flight-table">
-                    <thead>
-                    <tr>
-                        <td class="table-head">Chuyến Tàu Hỏa</td>
-                        <td class="table-head">Trạng Thái</td>
-                        <td class="table-head">Giá</td>
-                        <td class="table-head"></td>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="flight : ${flights}">
-                        <td>
-                            <p th:text="${flight.airline}" class="flight-number fw-bold"></p>
-                            <p th:text="'Ngày: ' + ${#temporals.format(flight.departureTime, 'dd-MM-yyyy')}"></p>
-                            <p th:text="${#temporals.format(flight.departureTime, 'HH:mm')} + ' đến ' + ${#temporals.format(flight.arrivalTime, 'HH:mm')}"
-                               class="flight-time"></p>
-                            <p><span class="flight-details"><i class="fas fa-train me-2"></i></span><span
-                                    th:text=" 'Tàu ' + ${flight.flightNumber}"
-                                    class="flight-number"></span></p>
-                        </td>
-                        <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
-                        <td th:text="${minPrices[flight.flightId] != null ? ('Từ ' + #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') + ' VND') : (#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT') + ' VND')}"
-                            class="price"></td>
-                        <td>
-                            <div class="row mt-4">
-                                <div class="col-12 text-end">
-                                    <button type="button"
-                                            th:data-flight-id="${flight.flightId}"
-                                            data-leg="outbound"
-                                            th:disabled="${flight.seatCapacity == 0}"
-                                            th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled' : 'btn btn-primary open-seat-modal'}">
-                                        <i class="fas fa-arrow-right me-2"></i>Chọn
-                                    </button>
-                                </div>
+                
+                <!-- LAYOUT MỚI: Train Cards -->
+                <div th:unless="${flights.isEmpty()}" class="train-list">
+                    <div th:each="flight : ${flights}" class="train-card">
+                        <div class="train-info">
+                            <div class="train-code" th:text="${flight.flightNumber}"></div>
+                        </div>
+
+                        <div class="journey-details">
+                            <div class="station-time">
+                                <div class="station-name" th:text="${departureAirport.airportName}"></div>
+                                <div class="time" th:text="${#temporals.format(flight.departureTime, 'HH:mm')}"></div>
+                                <div class="date" th:text="${#temporals.format(flight.departureTime, 'dd/MM/yyyy')}"></div>
                             </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+
+                            <div class="journey-visual">
+                                <div class="train-number">
+                                    <span th:with="hours=${T(java.time.Duration).between(flight.departureTime, flight.arrivalTime).toHours()},
+                                                   minutes=${T(java.time.Duration).between(flight.departureTime, flight.arrivalTime).toMinutes() % 60}"
+                                          th:text="${hours + 'h' + minutes + 'p'}">
+                                    </span>
+                                </div>
+                                <div class="journey-line"></div>
+                                <div class="fas fa-arrow-right me-2"></div>
+                            </div>
+
+                            <div class="station-time">
+                                <div class="station-name" th:text="${arrivalAirport.airportName}"></div>
+                                <div class="time" th:text="${#temporals.format(flight.arrivalTime, 'HH:mm')}"></div>
+                                <div class="date" th:text="${#temporals.format(flight.arrivalTime, 'dd/MM/yyyy')}"></div>
+                            </div>
+                        </div>
+
+                        <div class="price-booking">
+                            <div class="price-label">Từ</div>
+                            <div class="price">
+                                <span th:text="${minPrices[flight.flightId] != null ? 
+                                    #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') : 
+                                    #numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')}"></span> ₫
+                            </div>
+                            <button type="button"
+                                    th:data-flight-id="${flight.flightId}"
+                                    data-leg="outbound"
+                                    th:disabled="${flight.seatCapacity == 0}"
+                                    th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled book-btn' : 'btn btn-primary open-seat-modal book-btn'}">
+                                <i class="fas fa-arrow-right me-2"></i>Chọn chỗ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PHẦN CHUYẾN VỀ -->
                 <div th:if="${tripType == 'roundtrip'}" id="return-section">
                     <hr/>
                     <div class="row mt-4">
@@ -98,7 +111,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="location-info">
-                                <p><i class="fas fa-map-marker-alt me-2" id="departureAirportId"></i>Ga khởi hành</p>
+                                <p><i class="fas fa-map-marker-alt me-2"></i>Ga khởi hành</p>
                                 <h3 th:text="${arrivalAirport.airportName} + ' (' + ${arrivalAirport.airportCode} + ')'"></h3>
                             </div>
                         </div>
@@ -116,50 +129,62 @@
                         </div>
                     </div>
                     <h3 th:if="${returnFlights == null or returnFlights.isEmpty()}" class="text-center fw-bold text-result">Không có chuyến về phù hợp</h3>
-                    <table th:unless="${returnFlights == null or returnFlights.isEmpty()}" class="table flight-table mt-3">
-                        <thead>
-                        <tr>
-                            <td class="table-head">Chuyến Tàu Hỏa</td>
-                            <td class="table-head">Trạng Thái</td>
-                            <td class="table-head">Giá</td>
-                            <td class="table-head"></td>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="flight : ${returnFlights}">
-                            <td>
-                                <p th:text="${flight.airline}" class="flight-number fw-bold"></p>
-                                <p th:text="'Ngày: ' + ${#temporals.format(flight.departureTime, 'dd-MM-yyyy')}"></p>
-                                <p th:text="${#temporals.format(flight.departureTime, 'HH:mm')} + ' đến ' + ${#temporals.format(flight.arrivalTime, 'HH:mm')}"
-                                   class="flight-time"></p>
-                                <p><span class="flight-details"><i class="fas fa-train me-2"></i></span><span
-                                        th:text=" 'Tàu ' + ${flight.flightNumber}"
-                                        class="flight-number"></span></p>
-                            </td>
-                            <td class="price" th:text="${flight.seatCapacity == 0 ? 'Hết chỗ' : 'Còn chỗ'}"></td>
-                            <td th:text="${minPrices[flight.flightId] != null ? ('Từ ' + #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') + ' VND') : (#numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT') + ' VND')}"
-                                class="price"></td>
-                            <td>
-                                <div class="row mt-4">
-                                    <div class="col-12 text-end">
-                                        <button type="button"
-                                                th:data-flight-id="${flight.flightId}"
-                                                data-leg="return"
-                                                th:disabled="${flight.seatCapacity == 0}"
-                                                th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled' : 'btn btn-primary open-seat-modal'}">
-                                            <i class="fas fa-arrow-right me-2"></i>Chọn
-                                        </button>
-                                    </div>
+                    
+                    <!-- LAYOUT MỚI: Return Train Cards -->
+                    <div th:unless="${returnFlights == null or returnFlights.isEmpty()}" class="train-list mt-3">
+                        <div th:each="flight : ${returnFlights}" class="train-card">
+                            <div class="train-info">
+                                <div class="train-code" th:text="${flight.flightNumber}"></div>
+                            </div>
+
+                            <div class="journey-details">
+                                <div class="station-time">
+                                    <div class="station-name" th:text="${arrivalAirport.airportName}"></div>
+                                    <div class="time" th:text="${#temporals.format(flight.departureTime, 'HH:mm')}"></div>
+                                    <div class="date" th:text="${#temporals.format(flight.departureTime, 'dd/MM/yyyy')}"></div>
                                 </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+
+                                <div class="journey-visual">
+                                    <div class="train-number">
+                                        <span th:with="hours=${T(java.time.Duration).between(flight.departureTime, flight.arrivalTime).toHours()},
+                                                       minutes=${T(java.time.Duration).between(flight.departureTime, flight.arrivalTime).toMinutes() % 60}"
+                                              th:text="${hours + 'h' + minutes + 'p'}">
+                                        </span>
+                                    </div>
+                                    <div class="journey-line"></div>
+                                    <div class="duration">→</div>
+                                </div>
+
+                                <div class="station-time">
+                                    <div class="station-name" th:text="${departureAirport.airportName}"></div>
+                                    <div class="time" th:text="${#temporals.format(flight.arrivalTime, 'HH:mm')}"></div>
+                                    <div class="date" th:text="${#temporals.format(flight.arrivalTime, 'dd/MM/yyyy')}"></div>
+                                </div>
+                            </div>
+
+                            <div class="price-booking">
+                                <div class="price-label">Từ</div>
+                                <div class="price">
+                                    <span th:text="${minPrices[flight.flightId] != null ? 
+                                        #numbers.formatDecimal(minPrices[flight.flightId], 0, 'COMMA', 0, 'POINT') : 
+                                        #numbers.formatDecimal(flight.price, 0, 'COMMA', 0, 'POINT')}"></span> ₫
+                                </div>
+                                <button type="button"
+                                        th:data-flight-id="${flight.flightId}"
+                                        data-leg="return"
+                                        th:disabled="${flight.seatCapacity == 0}"
+                                        th:class="${flight.seatCapacity == 0 ? 'btn btn-secondary disabled book-btn' : 'btn btn-primary open-seat-modal book-btn'}">
+                                    <i class="fas fa-arrow-right me-2"></i>Chọn chỗ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <!-- Seat Selection Modal -->
 <div class="modal fade" id="seatSelectModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
