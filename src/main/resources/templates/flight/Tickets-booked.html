@@ -25,12 +25,12 @@
                 <div class="row mt-3">
                     <div class="ticket-details col-6 d-flex justify-content-center">
                         <i class="fas fa-train ticket-icon fs-2 d-flex alert"></i>
-                        <h5 class="d-flex alert"><span class="me-2">Cất cánh:</span><span
+                        <h5 class="d-flex alert"><span class="me-2">Điểm đi:</span><span
                                 th:text="${booking.getFlight().getDepartureAirport().getCity()}"></span></h5>
                     </div>
                     <div class="ticket-details col-6 d-flex justify-content-center">
                         <i class="fa-solid fa-train ticket-icon fs-2 d-flex alert"></i>
-                        <h5 class="d-flex alert"><span class="me-2">Hạ cánh:</span><span
+                        <h5 class="d-flex alert"><span class="me-2">Điểm đến:</span><span
                                 th:text="${booking.flight.getArrivalAirport().getCity()}"></span></h5>
                     </div>
                 </div>
