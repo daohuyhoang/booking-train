@@ -5,6 +5,7 @@ import com.group2.case_study.dtos.BookingDto;
 import com.group2.case_study.dtos.BookingWrapper;
 import com.group2.case_study.models.Booking;
 import com.group2.case_study.models.Flight;
+import com.group2.case_study.models.Seat;
 import com.group2.case_study.models.User;
 import com.group2.case_study.services.IBookingService;
 import com.group2.case_study.services.IFlightService;
@@ -137,12 +138,50 @@ public class VNPController {
         String email = user.getEmail();
         List<Booking> bookings = new ArrayList<>();
 
-        for (BookingDto bookingDto : customers) {
+        // Map each selected seat's price to a booking (assumes seatIds order corresponds to customers order)
+        List<Double> seatPrices = new ArrayList<>();
+        double fallbackPrice = flight != null && flight.getPrice() != null ? flight.getPrice() : 0.0;
+        if (seatIds != null && !seatIds.isEmpty()) {
+            for (Integer sId : seatIds) {
+                if (sId == null) {
+                    seatPrices.add(fallbackPrice);
+                    continue;
+                }
+                try {
+                    Seat s = seatService.findById(sId);
+                    if (s != null && s.getPrice() != null) {
+                        seatPrices.add(s.getPrice());
+                    } else {
+                        seatPrices.add(fallbackPrice);
+                    }
+                } catch (Exception ex) {
+                    seatPrices.add(fallbackPrice);
+                }
+            }
+        }
+
+        // If we have seatPrices matching customers, assign per-seat price; otherwise fall back to average or flight price
+        double averagePrice = 0.0;
+        if (!seatPrices.isEmpty()) {
+            double sum = 0.0;
+            for (Double p : seatPrices) sum += p != null ? p : 0.0;
+            averagePrice = sum / seatPrices.size();
+        } else {
+            averagePrice = fallbackPrice;
+        }
+
+        for (int i = 0; i < customers.size(); i++) {
+            BookingDto bookingDto = customers.get(i);
             Booking booking = new Booking();
             String codeBooking = generateRandomCode();
             booking.setCodeBooking(codeBooking);
             booking.setStatus("Đã thanh toán");
-            booking.setTotalPrice(flight.getPrice());
+            double priceForThisPassenger = averagePrice;
+            if (i < seatPrices.size()) {
+                Double p = seatPrices.get(i);
+                priceForThisPassenger = p != null ? p : averagePrice;
+            }
+            booking.setTotalPrice(priceForThisPassenger);
             booking.setFlight(flight);
             booking.setUser(user);
             BeanUtils.copyProperties(bookingDto, booking);

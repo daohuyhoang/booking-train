@@ -8,6 +8,7 @@ import com.group2.case_study.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +34,7 @@ public class BookingController {
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findUserByUsername(username);
-        Pageable pageable = PageRequest.of(page, 5);
+    Pageable pageable = PageRequest.of(page, 5, Sort.by(Sort.Direction.DESC, "bookingDate"));
         Page<Booking> bookings = bookingService.getBookingHistoryByUserId(user.getId(), pageable);
         model.addAttribute("bookings", bookings);
         return "/flight/booking";
