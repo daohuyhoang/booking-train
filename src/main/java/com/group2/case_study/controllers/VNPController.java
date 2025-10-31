@@ -52,6 +52,8 @@ public class VNPController {
     public String home(@RequestParam("ticketPrice") double ticketPrice,
                     @RequestParam("flightId") int flightId,
                     @ModelAttribute BookingWrapper bookingWrapper,
+                    @RequestParam(value = "phone", required = false) String phone,
+                    @RequestParam(value = "address", required = false) String address,
                     HttpSession session,
                     Model model) {
         if (session.getAttribute(PAYMENT_IDENTIFIER) != null) {
@@ -73,6 +75,16 @@ public class VNPController {
         model.addAttribute("ticketPrice", ticketPrice);
         model.addAttribute("flightId", flightId);
         model.addAttribute("customers", customersNew);
+        // If a logged-in user provided contact info, update their profile
+        try {
+            String userName = (String) session.getAttribute("username");
+            if (userName != null && (phone != null || address != null)) {
+                // Normalize nulls to empty strings is handled in service
+                userService.updateContactInfo(userName, phone, address);
+            }
+        } catch (Exception ex) {
+            // log later if a logging framework is available; do not fail the booking flow
+        }
 
         session.setAttribute(PAYMENT_IDENTIFIER, generateRandomCode());
 

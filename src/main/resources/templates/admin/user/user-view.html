@@ -15,10 +15,14 @@
             <p class="card-text"><strong>Email:</strong> <span th:text="${user.email}">Email</span></p>
             <p class="card-text"><strong>Địa Chỉ:</strong> <span th:text="${user.address}">Địa Chỉ</span></p>
             <p class="card-text"><strong>Trạng Thái Kích Hoạt:</strong> <span th:text="${user.activated ? 'Kích Hoạt' : 'Chưa Kích Hoạt'}">Trạng Thái</span></p>
-            <p class="card-text"><strong>Vai Trò:</strong>
-                <span th:if="${user.roles != null and user.roles.size() > 0}" th:text="${user.roles[0].role.name}">Vai Trò</span>
+            <!-- <p class="card-text"><strong>Vai Trò:</strong>
+                <span th:if="${user.roles != null and user.roles.size() > 0}">
+                    <ul>
+                        <li th:each="ur : ${user.roles}" th:text="${ur.role.description}"></li>
+                    </ul>
+                </span>
                 <span th:if="${user.roles == null or user.roles.size() == 0}">Không có vai trò</span>
-            </p>
+            </p> -->
             <a href="#" class="btn btn-primary" th:href="@{/admin/users}">Trở Lại Danh Sách</a>
         </div>
     </div>

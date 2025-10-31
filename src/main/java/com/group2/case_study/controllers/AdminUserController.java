@@ -32,6 +32,15 @@ public class AdminUserController {
         return "admin/user/user-view";
     }
 
+    @GetMapping("/edit/{id}")
+    public String editUserForm(@PathVariable("id") Integer id, Model model) {
+        User user = adminUserService.getUserById(id);
+        model.addAttribute("user", user);
+        // provide list of available roles for assigning
+        model.addAttribute("roles", adminUserService.getAllRoles());
+        return "admin/user/user-edit";
+    }
+
     @PostMapping("/update-role")
     public String updateUserRole(@RequestParam Integer userId, @RequestParam String role, RedirectAttributes redirectAttributes) {
         adminUserService.updateUserRole(userId, role);

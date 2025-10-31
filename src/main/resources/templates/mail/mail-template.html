@@ -557,10 +557,10 @@
             <div class="sub-content">
                 <span class="watermark">Lufthansa</span>
                 <span class="name">PASSENGER NAME<br><span th:text="${booking.getName()}"></span></span>
-                <span class="flight">FLIGHT CODE<br><span th:text="${booking.getFlight().getFlightNumber()}"></span></span>
-                <span class="gate">GATE<br><span>11B</span></span>
+                <span class="flight">TRAIN CODE<br><span th:text="${booking.getFlight().getFlightNumber()}"></span></span>
+                <!-- <span class="gate">GATE<br><span>11B</span></span> -->
                 <span class="seat">SEAT<br><span th:text="${booking.getNumberOfSeats()}"></span></span>
-                <span class="boardingtime">BOARDING TIME<br><span>30 MINUTES BEFORE FLIGHT</span></span>
+                <span class="boardingtime">BOARDING TIME<br><span>30 MINUTES BEFORE TRAIN</span></span>
 
                 <span class="flight flightslip">FLIGHT CODE<br><span th:text="${booking.getFlight().getFlightNumber()}"></span></span>
                 <span class="seat seatslip">SEAT<br><span th:text="${booking.getNumberOfSeats()}"></span></span>

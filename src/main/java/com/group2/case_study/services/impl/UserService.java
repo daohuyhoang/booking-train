@@ -26,4 +26,14 @@ public class UserService implements IUserService {
     public int findIdByUserName(String userName) {
         return userRepository.findIdByUserName(userName);
     }
+
+    @Override
+    public void updateContactInfo(String username, String phone, String address) {
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            user.setPhone(phone);
+            user.setAddress(address);
+            userRepository.save(user);
+        }
+    }
 }

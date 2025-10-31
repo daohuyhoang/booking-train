@@ -60,4 +60,9 @@ public class AdminUserService implements IAdminUserService {
         existingUser.setAvatar(user.getAvatar());
         adminUserRepository.save(existingUser);
     }
+
+    @Override
+    public java.util.List<Role> getAllRoles() {
+        return adminRoleRepository.findAll();
+    }
 }

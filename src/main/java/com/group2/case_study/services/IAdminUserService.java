@@ -1,6 +1,7 @@
 package com.group2.case_study.services;
 
 import com.group2.case_study.models.User;
+import com.group2.case_study.models.Role;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface IAdminUserService {
     void updateUserRole(Integer userId, String name);
 
     void updateUser(User user);
+
+    java.util.List<Role> getAllRoles();
 }
